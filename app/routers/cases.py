@@ -1,5 +1,7 @@
+from app.core.database import get_client
+from app.models.audit_transaction import AuditTransaction
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.dependencies.auth import get_current_user, require_permission
 from app.models.case import Case
 from app.models.user import User
@@ -20,15 +22,36 @@ def _out(c: Case) -> CaseResponse:
 async def create_case(data: CaseCreate, current_user: User = Depends(get_current_user)):
     if await Case.find_one(Case.case_number == data.case_number):
         raise HTTPException(409, "A case with this number already exists")
+
     case = Case(case_number=data.case_number, case_type=data.case_type, created_by=str(current_user.id))
-    await case.insert()
-    await log_action(str(current_user.id), "case_created", case_id=str(case.id))
+
+    client = get_client()
+    async with await client.start_session() as session:
+        async with session.start_transaction():
+            await case.insert(session=session)
+            await AuditTransaction(
+                actor_user_id=str(current_user.id), action="case_created",
+                case_id=str(case.id),
+            ).insert(session=session)
+
     return _out(case)
 
 @router.get("", response_model=list[CaseResponse],
             dependencies=[Depends(require_permission("case:view"))])
-async def list_cases():
-    cases = await Case.find(Case.deleted_at == None).to_list()
+async def list_cases(
+    status: str | None = Query(default=None),
+    case_type: str | None = Query(default=None),
+    q: str | None = Query(default=None, description="Search case_number"),
+):
+    query = {"deleted_at": None}
+    if status:
+        query["status"] = status
+    if case_type:
+        query["case_type"] = case_type
+    if q:
+        query["case_number"] = {"$regex": q, "$options": "i"}
+
+    cases = await Case.find(query).to_list()
     return [_out(c) for c in cases]
 
 @router.get("/{case_id}", response_model=CaseResponse,
