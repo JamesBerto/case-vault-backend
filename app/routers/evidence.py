@@ -1,6 +1,8 @@
+from unittest import case
+
 from app.core.database import get_client
 from app.models.audit_transaction import AuditTransaction
-
+from app.models.case import Case
 import io
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -47,6 +49,10 @@ async def upload_evidence(
 ):
     if file.content_type not in ALLOWED_TYPES:
         raise HTTPException(400, "Only PDF files are accepted")
+
+    case = await Case.get(case_id)
+    if case is None or case.deleted_at is not None:
+            raise HTTPException(404, "Case not found")
 
     file_bytes = await file.read()
     storage_path, file_hash = await store_file(file_bytes, file.filename)
@@ -153,13 +159,16 @@ async def verify_version(evidence_id: str, version_id: str, current_user: User =
 
 @router.get("/{evidence_id}/versions/{version_id}/download",
             dependencies=[Depends(require_permission("evidence:view"))])
-async def download_version(evidence_id: str, version_id: str):
+async def download_version(evidence_id: str, version_id: str, current_user: User = Depends(get_current_user)):
     """Streams the actual stored PDF file back to the client."""
     version = await EvidenceVersion.get(version_id)
     if version is None or version.evidence_id != evidence_id:
         raise HTTPException(404, "Version not found")
 
     file_bytes = await fetch_file(version.storage_path)
+
+    await log_action(str(current_user.id), "evidence_downloaded",
+                      evidence_id=evidence_id, metadata={"version_id": version_id})
 
     return StreamingResponse(
         io.BytesIO(file_bytes),

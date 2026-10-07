@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from app.models.role import Role
 from app.core.security import hash_password, verify_password
 from app.dependencies.auth import get_current_user, require_permission
 from app.models.user import User
@@ -30,6 +31,8 @@ async def change_password(data: ChangePasswordRequest, current_user: User = Depe
 async def create_user(data: UserCreate, current_user: User = Depends(get_current_user)):
     if await User.find_one(User.email == data.email):
         raise HTTPException(409, "A user with this email already exists")
+    if await Role.get(data.role_id) is None:
+        raise HTTPException(404, "Role not found")
     return _out(await create_user_account(data, current_user))
 
 @router.get("", response_model=list[UserResponse],
@@ -45,6 +48,8 @@ async def update_user(user_id: str, data: UserUpdate, current_user: User = Depen
         raise HTTPException(404, "User not found")
     changes = {}
     if data.role_id is not None:
+        if await Role.get(data.role_id) is None:
+            raise HTTPException(404, "Role not found")
         user.role_id = data.role_id
         changes["role_id"] = data.role_id
     if data.is_active is not None:

@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, status
 from app.core.security import create_access_token, verify_password
 from app.models.user import User
 from app.schemas.auth import LoginRequest, TokenResponse
+from app.services.audit_service import log_action
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -22,4 +23,5 @@ async def login(data: LoginRequest):
         )
 
     token = create_access_token({"sub": str(user.id), "role_id": user.role_id})
+    await log_action(str(user.id), "user_logged_in")
     return TokenResponse(access_token=token)
