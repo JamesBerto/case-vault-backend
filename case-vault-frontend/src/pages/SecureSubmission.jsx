@@ -1,7 +1,6 @@
 
 import { useRef, useState } from "react";
 import {
-  ArrowLeft,
   Upload,
   FileText,
   ShieldCheck,
@@ -127,14 +126,7 @@ function SecureSubmission() {
       onTabChange={goTo}
     >
       <div className="submission-page">
-        <button
-          type="button"
-          className="submission-back"
-          onClick={() => navigate("/cases")}
-        >
-          <ArrowLeft size={15} />
-          Back to Case Library
-        </button>
+
 
         <div className="submission-heading">
           <div>

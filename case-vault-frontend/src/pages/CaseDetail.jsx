@@ -110,14 +110,7 @@ function CaseDetail({ onNavigate }) {
   return (
     <VaultLayout activeTab="Case Detail" onTabChange={goTo}>
       <div className="detail-page">
-        <button
-          className="detail-back-button"
-          type="button"
-          onClick={() => navigate("/cases")}
-        >
-          <ArrowLeft size={16} />
-          Back to Case Library
-        </button>
+
 
         <div className="detail-heading">
           <div>
