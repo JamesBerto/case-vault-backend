@@ -1,3 +1,5 @@
+
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ShieldCheck,
@@ -11,80 +13,203 @@ import {
   AlertTriangle,
   History,
   Upload,
+  RefreshCw,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import VaultLayout from "../layouts/VaultLayout";
 import "./CaseDetail.css";
 
-const caseRecord = {
-  id: "APSY-2026-001",
-  title: "Digital Device Extraction",
-  status: "Under Review",
-  priority: "High",
-  investigator: "T. Santos",
-  reviewer: "M. Reyes",
-  created: "October 02, 2026",
-  updated: "October 10, 2026",
-  description:
-    "Forensic examination of a seized digital device to identify, preserve, and document artifacts relevant to the ongoing investigation.",
-};
+const API_BASE = "http://127.0.0.1:8000";
 
-const evidenceFiles = [
-  {
-    id: "EVD-001",
-    name: "device_extraction_report.pdf",
-    type: "PDF DOCUMENT",
-    size: "2.4 MB",
-    date: "Oct 10, 2026",
-    hash: "a84f91c2...7bd03e61",
-    status: "Verified",
-  },
-  {
-    id: "EVD-002",
-    name: "system_artifacts_summary.pdf",
-    type: "PDF DOCUMENT",
-    size: "1.8 MB",
-    date: "Oct 08, 2026",
-    hash: "7d32ab10...e9046f2c",
-    status: "Verified",
-  },
-  {
-    id: "EVD-003",
-    name: "acquisition_notes.pdf",
-    type: "PDF DOCUMENT",
-    size: "860 KB",
-    date: "Oct 06, 2026",
-    hash: "c19e52a4...1f8a30bd",
-    status: "Pending Review",
-  },
-];
+function formatDate(value) {
+  if (!value) return "Not available";
 
-const custodyEvents = [
-  {
-    date: "Oct 10, 2026 · 14:32 UTC",
-    title: "Integrity check recorded",
-    detail: "Evidence EVD-001 passed the demonstration integrity check.",
-    actor: "T. Santos",
-    type: "verified",
-  },
-  {
-    date: "Oct 08, 2026 · 09:15 UTC",
-    title: "Evidence record updated",
-    detail: "System artifacts summary was added to the case inventory.",
-    actor: "T. Santos",
-    type: "updated",
-  },
-  {
-    date: "Oct 02, 2026 · 08:40 UTC",
-    title: "Case dossier created",
-    detail: "Initial case record registered in the archive.",
-    actor: "M. Reyes",
-    type: "created",
-  },
-];
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "Not available";
+
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  });
+}
+
+function formatDateTime(value) {
+  if (!value) return "Not available";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "Not available";
+
+  return date.toLocaleString();
+}
+
+function formatStatus(value) {
+  if (!value) return "Unknown";
+
+  return String(value)
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function getIntegrityStatus(value) {
+  const status = String(value || "").toUpperCase();
+
+  if (status === "VERIFIED") return "Verified";
+  if (status === "TAMPERED") return "Tampered";
+
+  return "Pending";
+}
 
 function CaseDetail({ onNavigate }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const params = useParams();
+
+  const searchParams = new URLSearchParams(location.search);
+  const queryCaseId =
+    searchParams.get("caseId") || searchParams.get("case_id") || "";
+
+  const requestedCaseId =
+    location.state?.caseId ||
+    location.state?.case?.id ||
+    queryCaseId ||
+    params.caseId ||
+    params.id ||
+    "";
+
+  const [cases, setCases] = useState([]);
+  const [evidence, setEvidence] = useState([]);
+  const [manualSelectedCaseId, setManualSelectedCaseId] = useState("");
+  const selectedCaseId = requestedCaseId || manualSelectedCaseId;
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [evidenceError, setEvidenceError] = useState("");
+  const [verifyingId, setVerifyingId] = useState("");
+  const [verifyMessage, setVerifyMessage] = useState("");
+
+  const loadData = useCallback(async (signal) => {
+    if (!signal?.aborted) {
+      setLoading(true);
+      setError("");
+      setEvidenceError("");
+    }
+
+    try {
+      const token = sessionStorage.getItem("caseVaultToken");
+
+      if (!token) {
+        throw new Error(
+          "Your session token was not found. Please log in again."
+        );
+      }
+
+      const headers = {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      };
+
+      const [casesResponse, evidenceResponse] = await Promise.all([
+        fetch(`${API_BASE}/cases`, { headers, signal }),
+        fetch(`${API_BASE}/evidence`, { headers, signal }),
+      ]);
+
+      if (signal?.aborted) return;
+
+      if (
+        casesResponse.status === 401 ||
+        evidenceResponse.status === 401
+      ) {
+        throw new Error("Your session has expired. Please log in again.");
+      }
+
+      if (!casesResponse.ok) {
+        throw new Error(
+          `Could not load cases (HTTP ${casesResponse.status}).`
+        );
+      }
+
+      const casesData = await casesResponse.json();
+
+      if (signal?.aborted) return;
+
+      setCases(Array.isArray(casesData) ? casesData : []);
+
+      if (evidenceResponse.ok) {
+        const evidenceData = await evidenceResponse.json();
+
+        if (signal?.aborted) return;
+
+        setEvidence(Array.isArray(evidenceData) ? evidenceData : []);
+      } else {
+        setEvidence([]);
+        setEvidenceError(
+          `Cases loaded, but evidence could not be loaded (HTTP ${evidenceResponse.status}).`
+        );
+      }
+    } catch (err) {
+      if (err.name !== "AbortError" && !signal?.aborted) {
+        setError(err.message || "Unable to load case details.");
+      }
+    } finally {
+      if (!signal?.aborted) {
+        setLoading(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    // Defer the initial request until after effect setup.
+    const controller = new AbortController();
+
+    const timer = setTimeout(() => {
+      loadData(controller.signal);
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [loadData]);
+
+  const caseRecord = useMemo(() => {
+    if (!cases.length) return null;
+
+    if (selectedCaseId) {
+      // Match by Mongo ID or case number.
+      // Never silently display a different requested case.
+      return (
+        cases.find(
+          (item) =>
+            String(item.id) === String(selectedCaseId) ||
+            String(item.case_number) === String(selectedCaseId)
+        ) || null
+      );
+    }
+
+    // Use the first case only when no case was requested.
+    return cases[0];
+  }, [cases, selectedCaseId]);
+
+  const caseEvidence = useMemo(() => {
+    if (!caseRecord) return [];
+
+    const selectedId = String(caseRecord.id || "");
+    const selectedNumber = String(caseRecord.case_number || "");
+
+    return evidence.filter((item) => {
+      const evidenceCaseId = String(item.case_id || "");
+      const evidenceCaseNumber = String(item.case_number || "");
+
+      return (
+        evidenceCaseId === selectedId ||
+        evidenceCaseId === selectedNumber ||
+        evidenceCaseNumber === selectedNumber
+      );
+    });
+  }, [evidence, caseRecord]);
 
   const goTo = (tab) => {
     if (onNavigate) {
@@ -101,294 +226,515 @@ function CaseDetail({ onNavigate }) {
       "Access Control": "/access-control",
     };
 
+    if (routes[tab]) navigate(routes[tab]);
+  };
 
-    if (routes[tab]) {
-      navigate(routes[tab]);
+  const verifyEvidence = async (file) => {
+    setVerifyingId(file.id);
+    setVerifyMessage("");
+
+    try {
+      const token = sessionStorage.getItem("caseVaultToken");
+
+      if (!token) {
+        throw new Error(
+          "Your session token was not found. Please log in again."
+        );
+      }
+
+      if (!file.current_version_id) {
+        throw new Error("This evidence has no current version to verify.");
+      }
+
+      const response = await fetch(
+        `${API_BASE}/evidence/${encodeURIComponent(file.id)}/versions/${encodeURIComponent(file.current_version_id)}/verify`,
+        {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          result.detail || `Verification failed (HTTP ${response.status}).`
+        );
+      }
+
+      const newStatus = getIntegrityStatus(result.integrity);
+
+      setEvidence((current) =>
+        current.map((item) =>
+          String(item.id) === String(file.id)
+            ? { ...item, integrity: result.integrity }
+            : item
+        )
+      );
+
+      setVerifyMessage(
+        `${file.file_name || file.title}: ${newStatus}. The server completed the integrity check.`
+      );
+    } catch (err) {
+      setVerifyMessage(err.message || "Could not verify this evidence.");
+    } finally {
+      setVerifyingId("");
     }
+  };
+
+  const verifiedCount = caseEvidence.filter(
+    (file) => getIntegrityStatus(file.integrity) === "Verified"
+  ).length;
+
+  const tamperedCount = caseEvidence.filter(
+    (file) => getIntegrityStatus(file.integrity) === "Tampered"
+  ).length;
+
+  const status = formatStatus(caseRecord?.status);
+  const registeredDate =
+    caseRecord?.submission_date || caseRecord?.created_at;
+
+  const retryLoad = () => {
+    const controller = new AbortController();
+    loadData(controller.signal);
   };
 
   return (
     <VaultLayout activeTab="Case Detail" onTabChange={goTo}>
       <div className="detail-page">
-
-
         <div className="detail-heading">
           <div>
             <div className="detail-eyebrow">
               CASE ARCHIVE / DOSSIER DETAILS
             </div>
+
             <div className="detail-title-row">
-              <h1>{caseRecord.title}</h1>
-              <span className="detail-status">
-                <span />
-                {caseRecord.status}
-              </span>
+              <h1>{caseRecord?.case_type || "Case Details"}</h1>
+
+              {caseRecord && (
+                <span className="detail-status">
+                  <span />
+                  {status}
+                </span>
+              )}
             </div>
+
             <p>
-              Review case information, associated evidence, and recorded
-              chain-of-custody activity.
+              Review live case information and the evidence associated with
+              this case.
             </p>
           </div>
 
           <button
             className="detail-primary-button"
             type="button"
-            onClick={() => goTo("Secure Submission")}
+            onClick={() =>
+              navigate("/submission", {
+                state: {
+                  caseId: caseRecord?.id,
+                  caseNumber: caseRecord?.case_number,
+                },
+              })
+            }
+            disabled={!caseRecord}
           >
             <Upload size={16} />
             Add Evidence
           </button>
         </div>
 
-        <section className="detail-case-banner">
-          <div className="detail-case-symbol">
-            <Fingerprint size={26} />
+        {loading && (
+          <div className="detail-panel" role="status">
+            <RefreshCw size={18} />
+            <span>Loading cases and evidence...</span>
           </div>
+        )}
 
-          <div className="detail-case-identity">
-            <span>CASE IDENTIFIER</span>
-            <strong>{caseRecord.id}</strong>
-            <small>FORENSIC DOSSIER · DIGITAL EVIDENCE</small>
-          </div>
+        {!loading && error && (
+          <section className="detail-panel" role="alert">
+            <AlertTriangle size={20} />
+            <h2>Unable to load case details</h2>
+            <p>{error}</p>
 
-          <div className="detail-banner-divider" />
-
-          <div className="detail-banner-item">
-            <span>PRIORITY</span>
-            <strong className="detail-priority">
-              <span />
-              {caseRecord.priority}
-            </strong>
-          </div>
-
-          <div className="detail-banner-item">
-            <span>REGISTERED</span>
-            <strong>{caseRecord.created}</strong>
-          </div>
-        </section>
-
-        <div className="detail-overview-grid">
-          <section className="detail-panel detail-information">
-            <div className="detail-panel-heading">
-              <div>
-                <span className="detail-section-index">01 / OVERVIEW</span>
-                <h2>Case Information</h2>
-              </div>
-              <LockKeyhole size={18} />
-            </div>
-
-            <p className="detail-description">
-              {caseRecord.description}
-            </p>
-
-            <div className="detail-information-grid">
-              <div>
-                <span className="detail-field-label">
-                  <UserRound size={14} />
-                  LEAD INVESTIGATOR
-                </span>
-                <strong>{caseRecord.investigator}</strong>
-              </div>
-              <div>
-                <span className="detail-field-label">
-                  <ShieldCheck size={14} />
-                  ASSIGNED REVIEWER
-                </span>
-                <strong>{caseRecord.reviewer}</strong>
-              </div>
-              <div>
-                <span className="detail-field-label">
-                  <Clock3 size={14} />
-                  LAST MODIFIED
-                </span>
-                <strong>{caseRecord.updated}</strong>
-              </div>
-              <div>
-                <span className="detail-field-label">
-                  <FileText size={14} />
-                  EVIDENCE ITEMS
-                </span>
-                <strong>{String(evidenceFiles.length).padStart(2, "0")} listed</strong>
-              </div>
-            </div>
-          </section>
-
-          <section className="detail-panel detail-integrity">
-            <div className="detail-panel-heading">
-              <div>
-                <span className="detail-section-index">02 / INTEGRITY</span>
-                <h2>Archive Integrity</h2>
-              </div>
-              <ShieldCheck size={19} />
-            </div>
-
-            <div className="detail-integrity-icon">
-              <CheckCircle2 size={25} />
-            </div>
-            <strong className="detail-integrity-title">
-              Integrity Records Available
-            </strong>
-            <p>
-              Hash references are displayed for interface demonstration.
-              Live verification requires connection to the backend.
-            </p>
-
-            <div className="detail-integrity-row">
-              <span>Listed evidence</span>
-              <strong>{String(evidenceFiles.length).padStart(2, "0")} files</strong>
-            </div>
-            <div className="detail-integrity-row">
-              <span>Verified in demo data</span>
-              <strong>
-                {String(
-                  evidenceFiles.filter((file) => file.status === "Verified").length
-                ).padStart(2, "0")}{" "}
-                files
-              </strong>
-            </div>
-
-            <div className="detail-demo-warning">
-              <AlertTriangle size={14} />
-              Demonstration status only
-            </div>
-          </section>
-        </div>
-
-        <section className="detail-panel detail-evidence-panel">
-          <div className="detail-panel-heading detail-evidence-heading">
-            <div>
-              <span className="detail-section-index">03 / EVIDENCE INVENTORY</span>
-              <h2>Registered Evidence</h2>
-              <p>Evidence files associated with this case dossier.</p>
-            </div>
-            <span className="detail-evidence-count">
-              {String(evidenceFiles.length).padStart(2, "0")} ITEMS
-            </span>
-          </div>
-
-          <div className="detail-evidence-list">
-            {evidenceFiles.map((file) => (
-              <article className="detail-evidence-row" key={file.id}>
-                <div className="detail-file-icon">
-                  <FileText size={20} />
-                </div>
-
-                <div className="detail-file-main">
-                  <strong>{file.name}</strong>
-                  <span>
-                    {file.id} <span className="detail-dot">·</span> {file.type}
-                  </span>
-                </div>
-
-                <div className="detail-file-meta">
-                  <span>FILE SIZE</span>
-                  <strong>{file.size}</strong>
-                </div>
-
-                <div className="detail-file-meta detail-file-hash">
-                  <span>SHA-256 REFERENCE</span>
-                  <code>{file.hash}</code>
-                </div>
-
-                <div className="detail-file-status-wrap">
-                  <span
-                    className={`detail-file-status ${
-                      file.status === "Verified"
-                        ? "detail-file-verified"
-                        : "detail-file-pending"
-                    }`}
-                  >
-                    {file.status === "Verified" ? (
-                      <CheckCircle2 size={13} />
-                    ) : (
-                      <Clock3 size={13} />
-                    )}
-                    {file.status}
-                  </span>
-                  <small>{file.date}</small>
-                </div>
-
-                <button
-                  className="detail-file-action"
-                  type="button"
-                  title="Delete Evidence"
-                  onClick={() =>
-                    window.alert(
-                      "This is demonstration data. Evidence preview will be available after backend integration."
-                    )
-                  }
-                >
-                  <ExternalLink size={15} />
-                </button>
-              </article>
-            ))}
-          </div>
-
-          <div className="detail-evidence-footer">
-            <span>HASH VALUES ARE PLACEHOLDERS</span>
-            <button type="button" onClick={() => goTo("Secure Submission")}>
-              <Upload size={14} />
-              Register Evidence
+            <button
+              className="detail-primary-button"
+              type="button"
+              onClick={retryLoad}
+            >
+              <RefreshCw size={15} />
+              Retry
             </button>
-          </div>
-        </section>
+          </section>
+        )}
 
-        <section className="detail-panel detail-custody-panel">
-          <div className="detail-panel-heading detail-custody-heading">
-            <div>
-              <span className="detail-section-index">04 / CHAIN OF CUSTODY</span>
-              <h2>Activity Ledger</h2>
-              <p>Chronological overview of recorded dossier activity.</p>
-            </div>
-            <History size={19} />
-          </div>
+        {!loading && !error && cases.length === 0 && (
+          <section className="detail-panel">
+            <h2>No cases found</h2>
+            <p>There are currently no cases available from the backend.</p>
+          </section>
+        )}
 
-          <div className="detail-timeline">
-            {custodyEvents.map((event, index) => (
-              <article className="detail-timeline-event" key={event.title}>
-                <div className={`detail-timeline-marker marker-${event.type}`}>
-                  {event.type === "verified" ? (
-                    <CheckCircle2 size={15} />
-                  ) : event.type === "updated" ? (
-                    <FileText size={15} />
+        {!loading && !error && cases.length > 0 && !caseRecord && (
+          <section className="detail-panel" role="alert">
+            <AlertTriangle size={20} />
+            <h2>Case not found</h2>
+            <p>
+              The requested case ID or case number does not match any case
+              currently returned by the backend.
+            </p>
+            <p>
+              Requested ID: <strong>{selectedCaseId}</strong>
+            </p>
+            <button
+              className="detail-primary-button"
+              type="button"
+              onClick={() => navigate("/cases")}
+            >
+              <ArrowLeft size={15} />
+              Return to Case Library
+            </button>
+          </section>
+        )}
+
+        {!loading && !error && cases.length > 0 && caseRecord && (
+          <>
+            {cases.length > 1 && (
+              <div className="detail-panel">
+                <label htmlFor="detail-case-selector">Select a case</label>
+
+                <select
+                  id="detail-case-selector"
+                  value={caseRecord.id || ""}
+                  onChange={(event) => {
+                    const nextId = event.target.value;
+                    const nextCase = cases.find(
+                      (item) => String(item.id) === String(nextId)
+                    );
+
+                    setManualSelectedCaseId(nextId);
+                    setVerifyMessage("");
+
+                    navigate(
+                      `/cases/detail?caseId=${encodeURIComponent(nextId)}`,
+                      {
+                        replace: true,
+                        state: {
+                          caseId: nextId,
+                          caseNumber: nextCase?.case_number,
+                        },
+                      }
+                    );
+                  }}
+                >
+                  {cases.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.case_number || item.id} —{" "}
+                      {item.case_type || "Case"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <section className="detail-case-banner">
+              <div className="detail-case-symbol">
+                <Fingerprint size={26} />
+              </div>
+
+              <div className="detail-case-identity">
+                <span>CASE IDENTIFIER</span>
+                <strong>{caseRecord.case_number || caseRecord.id}</strong>
+                <small>
+                  FORENSIC DOSSIER · {caseRecord.case_type || "CASE"}
+                </small>
+              </div>
+
+              <div className="detail-banner-divider" />
+
+              <div className="detail-banner-item">
+                <span>STATUS</span>
+                <strong>{status}</strong>
+              </div>
+
+              <div className="detail-banner-item">
+                <span>REGISTERED</span>
+                <strong>{formatDate(registeredDate)}</strong>
+              </div>
+            </section>
+
+            <div className="detail-overview-grid">
+              <section className="detail-panel detail-information">
+                <div className="detail-panel-heading">
+                  <div>
+                    <span className="detail-section-index">
+                      01 / OVERVIEW
+                    </span>
+                    <h2>Case Information</h2>
+                  </div>
+                  <LockKeyhole size={18} />
+                </div>
+
+                <p className="detail-description">
+                  {caseRecord.description ||
+                    `Case record for ${caseRecord.case_type || "forensic investigation"}. No additional description is available in the current case record.`}
+                </p>
+
+                <div className="detail-information-grid">
+                  <div>
+                    <span className="detail-field-label">
+                      <UserRound size={14} />
+                      LEAD INVESTIGATOR
+                    </span>
+                    <strong>
+                      {caseRecord.investigator ||
+                        caseRecord.created_by_name ||
+                        caseRecord.created_by ||
+                        "Not assigned"}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span className="detail-field-label">
+                      <ShieldCheck size={14} />
+                      ASSIGNED REVIEWER
+                    </span>
+                    <strong>{caseRecord.reviewer || "Not assigned"}</strong>
+                  </div>
+
+                  <div>
+                    <span className="detail-field-label">
+                      <Clock3 size={14} />
+                      LAST MODIFIED
+                    </span>
+                    <strong>
+                      {formatDateTime(
+                        caseRecord.updated_at || caseRecord.created_at
+                      )}
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span className="detail-field-label">
+                      <FileText size={14} />
+                      EVIDENCE ITEMS
+                    </span>
+                    <strong>
+                      {String(caseEvidence.length).padStart(2, "0")} listed
+                    </strong>
+                  </div>
+                </div>
+              </section>
+
+              <section className="detail-panel detail-integrity">
+                <div className="detail-panel-heading">
+                  <div>
+                    <span className="detail-section-index">
+                      02 / INTEGRITY
+                    </span>
+                    <h2>Archive Integrity</h2>
+                  </div>
+                  <ShieldCheck size={19} />
+                </div>
+
+                <div className="detail-integrity-icon">
+                  {caseEvidence.length > 0 &&
+                  verifiedCount === caseEvidence.length ? (
+                    <CheckCircle2 size={25} />
                   ) : (
-                    <LockKeyhole size={15} />
+                    <AlertTriangle size={25} />
                   )}
                 </div>
 
-                <div className="detail-timeline-content">
-                  <div className="detail-timeline-title-row">
-                    <h3>{event.title}</h3>
-                    <time>{event.date}</time>
-                  </div>
-                  <p>{event.detail}</p>
-                  <span>RECORDED BY: {event.actor}</span>
+                <strong className="detail-integrity-title">
+                  {caseEvidence.length > 0 &&
+                  verifiedCount === caseEvidence.length
+                    ? "Evidence Integrity Verified"
+                    : "Integrity Review Required"}
+                </strong>
+
+                <p>
+                  This summary uses the integrity statuses returned by the
+                  backend. Verify individual evidence versions to refresh
+                  their status.
+                </p>
+
+                <div className="detail-integrity-row">
+                  <span>Associated evidence</span>
+                  <strong>{caseEvidence.length} files</strong>
                 </div>
 
-                {index !== custodyEvents.length - 1 && (
-                  <div className="detail-timeline-line" />
-                )}
-              </article>
-            ))}
-          </div>
+                <div className="detail-integrity-row">
+                  <span>Verified</span>
+                  <strong>{verifiedCount} files</strong>
+                </div>
 
-          <div className="detail-ledger-footer">
-            <ShieldCheck size={15} />
-            <span>
-              This activity ledger uses mock entries and is not a verified
-              audit log.
-            </span>
-          </div>
-        </section>
+                <div className="detail-integrity-row">
+                  <span>Tampered</span>
+                  <strong>{tamperedCount} files</strong>
+                </div>
+              </section>
+            </div>
 
-        <div className="detail-bottom-note">
-          <LockKeyhole size={15} />
-          CASE ACCESS IS SUBJECT TO AUTHENTICATION AND ROLE PERMISSIONS
-          <span>·</span>
-          <button type="button" onClick={() => navigate("/cases")}>
-            Return to archive <ArrowLeft size={13} />
-          </button>
-        </div>
+            <section className="detail-panel detail-evidence-panel">
+              <div className="detail-panel-heading detail-evidence-heading">
+                <div>
+                  <span className="detail-section-index">
+                    03 / EVIDENCE INVENTORY
+                  </span>
+                  <h2>Registered Evidence</h2>
+                  <p>
+                    Evidence records returned by the backend for this case.
+                  </p>
+                </div>
+
+                <span className="detail-evidence-count">
+                  {String(caseEvidence.length).padStart(2, "0")} ITEMS
+                </span>
+              </div>
+
+              {evidenceError && <p role="alert">{evidenceError}</p>}
+
+              {verifyMessage && <p role="status">{verifyMessage}</p>}
+
+              {caseEvidence.length === 0 ? (
+                <div className="detail-empty-evidence">
+                  <FileText size={24} />
+                  <p>No evidence is linked to this case yet.</p>
+                  <span>
+                    If you expected to see evidence here, check its case
+                    association in the backend.
+                  </span>
+                </div>
+              ) : (
+                <div className="detail-evidence-list">
+                  {caseEvidence.map((file) => {
+                    const integrity = getIntegrityStatus(file.integrity);
+
+                    return (
+                      <article className="detail-evidence-row" key={file.id}>
+                        <div className="detail-file-icon">
+                          <FileText size={20} />
+                        </div>
+
+                        <div className="detail-file-main">
+                          <strong>{file.file_name || file.title}</strong>
+                          <span>
+                            {file.title || file.evidence_id || file.id}
+                            <span className="detail-dot"> · </span>
+                            {String(file.file_type || "File").toUpperCase()}
+                          </span>
+                          <small>{file.evidence_type || "Evidence"}</small>
+                        </div>
+
+                        <div className="detail-file-meta detail-file-hash">
+                          <span>SHA-256 HASH</span>
+                          <code title={file.file_hash || "No hash available"}>
+                            {file.file_hash || "Not available"}
+                          </code>
+                        </div>
+
+                        <div className="detail-file-status-wrap">
+                          <span
+                            className={`detail-file-status ${
+                              integrity === "Verified"
+                                ? "detail-file-verified"
+                                : "detail-file-pending"
+                            }`}
+                          >
+                            {integrity === "Verified" ? (
+                              <CheckCircle2 size={13} />
+                            ) : integrity === "Tampered" ? (
+                              <AlertTriangle size={13} />
+                            ) : (
+                              <Clock3 size={13} />
+                            )}
+                            {integrity}
+                          </span>
+
+                          <small>
+                            {formatDate(file.uploaded_at || file.created_at)}
+                          </small>
+                        </div>
+
+                        <button
+                          className="detail-file-action"
+                          type="button"
+                          title="Verify evidence integrity"
+                          aria-label={`Verify ${file.file_name || file.title}`}
+                          disabled={
+                            !file.current_version_id || Boolean(verifyingId)
+                          }
+                          onClick={() => verifyEvidence(file)}
+                        >
+                          {verifyingId === file.id ? (
+                            <RefreshCw size={15} />
+                          ) : (
+                            <ExternalLink size={15} />
+                          )}
+                        </button>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="detail-evidence-footer">
+                <span>LIVE EVIDENCE DATA</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate("/submission", {
+                      state: {
+                        caseId: caseRecord.id,
+                        caseNumber: caseRecord.case_number,
+                      },
+                    })
+                  }
+                >
+                  <Upload size={14} />
+                  Register Evidence
+                </button>
+              </div>
+            </section>
+
+            <section className="detail-panel detail-custody-panel">
+              <div className="detail-panel-heading detail-custody-heading">
+                <div>
+                  <span className="detail-section-index">
+                    04 / CHAIN OF CUSTODY
+                  </span>
+                  <h2>Activity Ledger</h2>
+                  <p>
+                    The verified audit history is not yet connected to this
+                    page.
+                  </p>
+                </div>
+                <History size={19} />
+              </div>
+
+              <div className="detail-empty-evidence">
+                <LockKeyhole size={23} />
+                <p>Live audit events are not available here yet.</p>
+                <span>
+                  No mock events are shown as real chain-of-custody activity.
+                  Connect this section to the backend audit endpoint to display
+                  recorded events.
+                </span>
+              </div>
+            </section>
+
+            <div className="detail-bottom-note">
+              <LockKeyhole size={15} />
+              CASE ACCESS IS SUBJECT TO AUTHENTICATION AND ROLE PERMISSIONS
+              <span>·</span>
+              <button type="button" onClick={() => navigate("/cases")}>
+                Return to archive <ArrowLeft size={13} />
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </VaultLayout>
   );

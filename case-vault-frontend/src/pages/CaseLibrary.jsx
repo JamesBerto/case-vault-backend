@@ -1,12 +1,11 @@
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, RefreshCw, ArrowUpRight } from "lucide-react";
 import VaultLayout from "../layouts/VaultLayout";
 import "./CaseLibrary.css";
 
 const API = "http://127.0.0.1:8000";
-
 
 const routes = {
   Overview: "/welcome",
@@ -21,6 +20,7 @@ function formatDate(value) {
   if (!value) return "—";
 
   const date = new Date(value);
+
   return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
 }
 
@@ -33,21 +33,28 @@ export default function CaseLibrary() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const requestControllerRef = useRef(null);
+
   const loadEvidence = useCallback(async (signal) => {
     const token = sessionStorage.getItem("caseVaultToken");
 
     if (!token) {
-      setRecords([]);
-      setError("Your session has expired. Please log in again.");
-      setLoading(false);
+      if (!signal?.aborted) {
+        setRecords([]);
+        setError("Your session has expired. Please log in again.");
+        setLoading(false);
+      }
       return;
     }
 
-    setLoading(true);
-    setError("");
+    if (!signal?.aborted) {
+      setLoading(true);
+      setError("");
+    }
 
     try {
       const headers = {
+        Accept: "application/json",
         Authorization: `Bearer ${token}`,
       };
 
@@ -59,16 +66,20 @@ export default function CaseLibrary() {
           fetch(`${API}/evidence`, { headers, signal }),
           fetch(`${API}/cases`, { headers, signal }),
         ]);
-} catch (err) {
-  if (err.name === "AbortError") {
-    throw err;
-  }
+      } catch (err) {
+        if (err.name === "AbortError") throw err;
 
-  throw new Error(
-    "Cannot connect to the backend. Make sure FastAPI is running at http://127.0.0.1:8000.",
-    { cause: err }
-  );
-}
+        throw new Error(
+          "Cannot connect to the backend. Make sure FastAPI is running at http://127.0.0.1:8000.",
+          { cause: err }
+        );
+      }
+
+      if (signal?.aborted) return;
+
+      if (evidenceRes.status === 401 || casesRes.status === 401) {
+        throw new Error("Your session has expired. Please log in again.");
+      }
 
       if (!evidenceRes.ok) {
         throw new Error(
@@ -77,9 +88,7 @@ export default function CaseLibrary() {
       }
 
       if (!casesRes.ok) {
-        throw new Error(
-          `Could not load cases (HTTP ${casesRes.status}).`
-        );
+        throw new Error(`Could not load cases (HTTP ${casesRes.status}).`);
       }
 
       const [evidenceData, casesData] = await Promise.all([
@@ -91,8 +100,15 @@ export default function CaseLibrary() {
         throw new Error("The backend returned an unexpected response.");
       }
 
+      // Index cases by Mongo ID and case number.
       const caseMap = new Map(
         casesData.map((item) => [String(item.id), item])
+      );
+
+      const caseNumberMap = new Map(
+        casesData
+          .filter((item) => item.case_number)
+          .map((item) => [String(item.case_number), item])
       );
 
       const results = await Promise.all(
@@ -102,7 +118,7 @@ export default function CaseLibrary() {
           if (item.current_version_id) {
             try {
               const response = await fetch(
-                `${API}/evidence/${item.id}/versions`,
+                `${API}/evidence/${encodeURIComponent(item.id)}/versions`,
                 { headers, signal }
               );
 
@@ -113,18 +129,26 @@ export default function CaseLibrary() {
                   version =
                     versions.find(
                       (v) =>
-                        String(v.id) ===
-                        String(item.current_version_id)
+                        String(v.id) === String(item.current_version_id)
                     ) || null;
                 }
               }
             } catch (err) {
               if (err.name === "AbortError") throw err;
-              // Keep the evidence visible if version details are unavailable.
+
+              // Keep evidence visible if version details are unavailable.
             }
           }
 
-          const relatedCase = caseMap.get(String(item.case_id));
+          const rawCaseId = String(item.case_id || "");
+          const rawCaseNumber = String(item.case_number || "");
+
+          const relatedCase =
+            caseMap.get(rawCaseId) ||
+            caseNumberMap.get(rawCaseId) ||
+            caseMap.get(rawCaseNumber) ||
+            caseNumberMap.get(rawCaseNumber) ||
+            null;
 
           const hash = version?.file_hash || item.file_hash || "";
 
@@ -135,7 +159,7 @@ export default function CaseLibrary() {
 
           return {
             id: String(item.id),
-            caseId: item.case_id,
+            caseId: relatedCase?.id || item.case_id || "",
             caseNumber:
               relatedCase?.case_number ||
               item.case_number ||
@@ -159,6 +183,7 @@ export default function CaseLibrary() {
               : hash
                 ? "RECORDED"
                 : "PENDING",
+            hasMatchingCase: Boolean(relatedCase),
           };
         })
       );
@@ -169,7 +194,9 @@ export default function CaseLibrary() {
     } catch (err) {
       if (err.name === "AbortError") return;
 
-      setError(err.message || "Unable to load saved evidence.");
+      if (!signal?.aborted) {
+        setError(err.message || "Unable to load saved evidence.");
+      }
     } finally {
       if (!signal?.aborted) {
         setLoading(false);
@@ -177,19 +204,26 @@ export default function CaseLibrary() {
     }
   }, []);
 
-  useEffect(() => {
+  const startLoad = useCallback(() => {
+    requestControllerRef.current?.abort();
+
     const controller = new AbortController();
+    requestControllerRef.current = controller;
 
-    const startLoading = async () => {
-      await loadEvidence(controller.signal);
-    };
+    loadEvidence(controller.signal);
+  }, [loadEvidence]);
 
-    startLoading();
+  useEffect(() => {
+    // Defer the initial request until after effect setup.
+    const timer = setTimeout(() => {
+      startLoad();
+    }, 0);
 
     return () => {
-      controller.abort();
+      clearTimeout(timer);
+      requestControllerRef.current?.abort();
     };
-  }, [loadEvidence]);
+  }, [startLoad]);
 
   const evidenceTypes = useMemo(
     () => [
@@ -232,14 +266,35 @@ export default function CaseLibrary() {
   };
 
   const handleRefresh = () => {
-    loadEvidence();
+    startLoad();
+  };
+
+  const openCaseDetails = (record) => {
+    if (!record.caseId || !record.hasMatchingCase) {
+      setError(
+        `The case associated with "${record.title}" could not be found in the current case list. The evidence record has not been changed.`
+      );
+      return;
+    }
+
+    setError("");
+
+    navigate(
+      `/cases/detail?caseId=${encodeURIComponent(record.caseId)}`,
+      {
+        state: {
+          caseId: record.caseId,
+          caseNumber: record.caseNumber,
+        },
+      }
+    );
   };
 
   return (
     <VaultLayout
-  activeTab="Case Library"
-  onTabChange={handleNavigate}
->
+      activeTab="Case Library"
+      onTabChange={handleNavigate}
+    >
       <main className="evidence-library">
         <div className="evidence-library-kicker">
           ARCHIVE DIRECTORY / EVIDENCE LEDGER
@@ -328,7 +383,7 @@ export default function CaseLibrary() {
                   <tr>
                     <td colSpan={7} className="ledger-empty">
                       {error
-                        ? "Records could not be loaded. Check the error above."
+                        ? "Records could not be loaded or the requested action failed. Check the message above."
                         : records.length === 0
                           ? "No saved evidence yet. Submit a PDF through Secure Submission."
                           : "No records match your search or filter."}
@@ -382,14 +437,14 @@ export default function CaseLibrary() {
                         <button
                           type="button"
                           className="ledger-open-button"
-                          title="Open case details"
-                          onClick={() =>
-                            navigate(
-                              `/cases/detail?caseId=${encodeURIComponent(
-                                record.caseId || ""
-                              )}`
-                            )
+                          title={
+                            record.hasMatchingCase
+                              ? "Open case details"
+                              : "Associated case was not found"
                           }
+                          aria-label={`Open details for ${record.caseNumber}`}
+                          disabled={!record.hasMatchingCase}
+                          onClick={() => openCaseDetails(record)}
                         >
                           <ArrowUpRight size={16} />
                         </button>
