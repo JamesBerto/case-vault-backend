@@ -20,6 +20,9 @@ async def fetch_file(storage_path: str) -> bytes:
     stream = await bucket.open_download_stream(ObjectId(storage_path))
     return await stream.read()
 
+async def delete_file(storage_path: str) -> None:
+    await get_bucket().delete(ObjectId(storage_path))
+
 async def verify_integrity(storage_path: str, expected_hash: str) -> bool:
     """Re-hashes the stored file and compares against the recorded hash."""
     file_bytes = await fetch_file(storage_path)
