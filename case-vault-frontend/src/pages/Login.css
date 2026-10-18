@@ -1,5 +1,6 @@
 .login-page {
   min-height: 100vh;
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
   background: #f5f0e7;
   color: #2c211d;
   display: flex;
@@ -49,10 +50,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 24px 16px;
 }
 
 .login-card {
-  width: 344px;
+  width: 100%;
+  max-width: 344px;
   min-height: 385px;
   box-sizing: border-box;
   background: #fbf9f5;
@@ -166,9 +169,15 @@
 }
 
 .login-footer {
-  height: 30px;
-  margin: 0 7px 2px;
+  position: fixed;
+  right: 7px;
+  bottom: 0;
+  left: 7px;
+  z-index: 10;
+  min-height: 30px;
+  padding-bottom: env(safe-area-inset-bottom);
   border-top: 1px solid #b9aca0;
+  background: #f5f0e7;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -176,4 +185,34 @@
   font-family: "Courier New", monospace;
   font-size: 7px;
   color: #51443d;
+}
+
+@media (max-width: 600px) {
+  .login-header {
+    height: auto;
+    min-height: 44px;
+    gap: 8px;
+    margin: 12px 12px 0;
+  }
+
+  .header-description { text-align: right; }
+  .login-card { padding: 24px 20px; }
+  .form-group label { font-size: 10px; }
+
+  .form-group input {
+    min-height: 42px;
+    font-size: 16px;
+  }
+
+  .access-button {
+    min-height: 42px;
+    font-size: 11px;
+  }
+
+  .login-footer {
+    right: 12px;
+    left: 12px;
+    padding-left: 10px;
+    font-size: 9px;
+  }
 }

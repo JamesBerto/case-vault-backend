@@ -200,11 +200,11 @@
 }
 
 .audit-toolbar {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(2, minmax(140px, 165px));
   align-items: center;
-  gap: 10px;
-  padding: 15px 24px;
+  gap: 12px;
+  padding: 16px 24px;
   border-top: 1px solid #e8dfd2;
   border-bottom: 1px solid #e8dfd2;
   background: #f8f3eb;
@@ -212,7 +212,6 @@
 
 .audit-search {
   display: flex;
-  flex: 1 1 260px;
   align-items: center;
   gap: 9px;
   min-width: 0;
@@ -237,6 +236,14 @@
   color: #a99c8d;
 }
 
+.audit-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.audit-search input::-ms-clear {
+  display: none;
+}
+
 .audit-search button {
   display: grid;
   flex-shrink: 0;
@@ -250,18 +257,18 @@
 
 .audit-select {
   display: flex;
-  flex: 0 0 auto;
   align-items: center;
-  gap: 7px;
+  min-width: 0;
   min-height: 39px;
-  padding: 0 10px;
+  padding: 0 12px;
   border: 1px solid #dfd4c4;
   background: #fffdf8;
   color: #897761;
 }
 
 .audit-select select {
-  max-width: 150px;
+  width: 100%;
+  min-width: 0;
   border: 0;
   outline: none;
   background: transparent;
@@ -273,7 +280,8 @@
 
 .audit-table-wrap {
   width: 100%;
-  overflow-x: auto;
+  max-height: min(55vh, 440px);
+  overflow: auto;
 }
 
 .audit-table {
@@ -283,6 +291,9 @@
 }
 
 .audit-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   padding: 13px 15px;
   border-bottom: 1px solid #e4d9ca;
   background: #f7f1e7;
@@ -443,6 +454,12 @@
 
 .audit-status-flagged > span {
   background: #ae5745;
+}
+
+.audit-status-check-failed {
+  border-color: #e5c9bf;
+  background: #f8eae5;
+  color: #9a4c3c;
 }
 
 .audit-view-button {
@@ -709,21 +726,20 @@
   }
 
   .audit-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     padding: 13px 18px;
   }
 
   .audit-search {
-    flex-basis: 100%;
+    grid-column: 1 / -1;
   }
 
   .audit-select {
-    flex: 1;
-    justify-content: space-between;
+    width: 100%;
   }
 
   .audit-select select {
-    max-width: 100%;
-    min-width: 0;
+    width: 100%;
   }
 
   .audit-table-footer {

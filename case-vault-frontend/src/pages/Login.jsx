@@ -7,14 +7,30 @@ import {
   EyeOff
 } from "lucide-react";
 import "./Login.css";
+import { useAuth } from "../auth/context";
+import PhilippineClock from "../components/PhilippineClock";
 
 function Login() {
   const [showPassphrase, setShowPassphrase] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    navigate("/welcome");
+    setError("");
+    setSubmitting(true);
+    try {
+      await login(email.trim(), password);
+      navigate("/welcome", { replace: true });
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -52,21 +68,29 @@ function Login() {
           <form onSubmit={handleLogin}>
 
             <div className="form-group">
-              <label>ANALYST IDENTIFIER</label>
+              <label htmlFor="login-email">EMAIL ADDRESS</label>
 
               <input
-                type="text"
-                defaultValue="APSY-SANTOS-98"
+                id="login-email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="username"
+                required
               />
             </div>
 
             <div className="form-group">
-              <label>SECURE CRYPTOGRAPHIC PASSPHRASE</label>
+              <label htmlFor="login-password">PASSWORD</label>
 
               <div className="password-input">
                 <input
                   type={showPassphrase ? "text" : "password"}
-                  defaultValue="securecryptographicpassphrase"
+                  id="login-password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="current-password"
+                  required
                 />
 
                 <button
@@ -85,17 +109,10 @@ function Login() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label>HARDWARE MODULE (HSM) PIN</label>
+            {error && <p role="alert" style={{ color: "#a6372e" }}>{error}</p>}
 
-              <input
-                type="text"
-                defaultValue="[ 849-012 ]"
-              />
-            </div>
-
-            <button className="access-button" type="submit">
-              ACCESS SEALED CASE VAULT
+            <button className="access-button" type="submit" disabled={submitting}>
+              {submitting ? "SIGNING IN…" : "SIGN IN"}
             </button>
 
           </form>
@@ -106,9 +123,7 @@ function Login() {
       <footer className="login-footer">
         <span>CRYPTOGRAPHIC CLOCK:</span>
 
-        <span>
-          2026-10-24 14:38:09 UTC
-        </span>
+        <PhilippineClock />
       </footer>
 
     </div>

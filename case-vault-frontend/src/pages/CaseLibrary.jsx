@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import VaultLayout from "../layouts/VaultLayout";
 import "./CaseLibrary.css";
+import { api, philippineDate } from "../lib/api";
+import { useAuth } from "../auth/context";
 
 const routes = {
   Overview: "/welcome",
@@ -22,47 +24,46 @@ const routes = {
   "Access Control": "/access-control",
 };
 
-const initialCases = [
-  {
-    id: "APSY-2026-001",
-    title: "Digital Device Extraction",
-    investigator: "T. Santos",
-    evidence: 8,
-    status: "Under Review",
-    updated: "2026-10-10",
-  },
-  {
-    id: "APSY-2026-002",
-    title: "Network Intrusion Analysis",
-    investigator: "M. Reyes",
-    evidence: 12,
-    status: "Active",
-    updated: "2026-10-09",
-  },
-  {
-    id: "APSY-2026-003",
-    title: "Mobile Artifact Examination",
-    investigator: "J. Cruz",
-    evidence: 5,
-    status: "Sealed",
-    updated: "2026-10-08",
-  },
-  {
-    id: "APSY-2026-004",
-    title: "System Log Reconstruction",
-    investigator: "T. Santos",
-    evidence: 4,
-    status: "Active",
-    updated: "2026-10-06",
-  },
-];
-
-function CaseLibrary() {
+function CaseLibrary({ embedded = false, records, people, ready = true, loadError = "" }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
-  const [cases] = useState(initialCases);
+  const [cases, setCases] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ready) return;
+    let active = true;
+    const load = async () => {
+      try {
+        const sourceRecords = records === undefined ? await api("/cases") : records;
+        const sourceUsers = people === undefined
+          ? user.permissions.includes("user:manage") ? await api("/users") : []
+          : people;
+        const names = Object.fromEntries(sourceUsers.map((person) => [person.id, person.name]));
+        const [counts, caseTags] = await Promise.all([
+          Promise.all(sourceRecords.map((record) =>
+            api(`/evidence/by-case/${record.id}`).then((items) => items.length).catch(() => null))),
+          Promise.all(sourceRecords.map((record) => api(`/cases/${record.id}/tags`))),
+        ]);
+        if (active) setCases(sourceRecords.map((record, index) => ({
+          id: record.id, caseNumber: record.case_number, title: record.case_type,
+          investigator: names[record.created_by] || (record.created_by === user.id ? user.name : record.created_by),
+          evidence: counts[index], tags: caseTags[index].map((tag) => tag.name),
+          status: record.status, updated: philippineDate(record.updated_at),
+        })));
+      } catch (requestError) {
+        if (active) setError(requestError.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    load();
+    return () => { active = false; };
+  }, [user, records, people, ready]);
 
   const goTo = (tab) => {
     const route = routes[tab];
@@ -75,9 +76,10 @@ function CaseLibrary() {
   const filteredCases = useMemo(() => {
     return cases.filter((item) => {
       const matchesSearch = [
-        item.id,
+        item.caseNumber,
         item.title,
         item.investigator,
+        ...item.tags,
       ]
         .join(" ")
         .toLowerCase()
@@ -90,13 +92,9 @@ function CaseLibrary() {
     });
   }, [cases, search, status]);
 
-  return (
-    <VaultLayout
-      activeTab="Case Library"
-      onTabChange={goTo}
-    >
-      <div className="library-page">
-        <div className="library-heading">
+  const content = (
+      <div className={`library-page${embedded ? " library-page-embedded" : ""}`}>
+        {!embedded && <div className="library-heading">
           <div>
             <div className="library-eyebrow">
               ARCHIVE DIRECTORY / RECORDS
@@ -110,15 +108,20 @@ function CaseLibrary() {
             </p>
           </div>
 
-          <button
+          {user.permissions.includes("case:create") && <button
             className="library-create-button"
-            onClick={() => navigate(routes["Secure Submission"])}
+            onClick={() => navigate("/cases/new")}
             type="button"
           >
             <Plus size={16} />
             New Case
-          </button>
-        </div>
+          </button>}
+        </div>}
+
+        {embedded && user.permissions.includes("case:create") && <div className="library-embedded-actions"><button
+          className="library-create-button" onClick={() => navigate("/cases/new")} type="button">
+          <Plus size={16} /> New Case
+        </button></div>}
 
         <div className="library-stats">
           <div className="library-stat-card">
@@ -141,12 +144,12 @@ function CaseLibrary() {
             </span>
 
             <span className="library-stat-label">
-              UNDER REVIEW
+              OPEN CASES
             </span>
 
             <strong>
               {cases.filter(
-                (item) => item.status === "Under Review"
+                (item) => item.status.toLowerCase() === "open"
               ).length}
             </strong>
           </div>
@@ -157,12 +160,12 @@ function CaseLibrary() {
             </span>
 
             <span className="library-stat-label">
-              SEALED RECORDS
+              CLOSED CASES
             </span>
 
             <strong>
               {cases.filter(
-                (item) => item.status === "Sealed"
+                (item) => item.status.toLowerCase() === "closed"
               ).length}
             </strong>
           </div>
@@ -188,7 +191,8 @@ function CaseLibrary() {
 
               <input
                 type="search"
-                placeholder="Search by case ID, title, or investigator..."
+                placeholder="Search by case number, type, creator, or tag..."
+                aria-label="Search cases by case number, type, creator, or tag"
                 value={search}
                 onChange={(event) =>
                   setSearch(event.target.value)
@@ -207,9 +211,8 @@ function CaseLibrary() {
                 aria-label="Filter by case status"
               >
                 <option value="All">All statuses</option>
-                <option value="Active">Active</option>
-                <option value="Under Review">Under Review</option>
-                <option value="Sealed">Sealed</option>
+                {[...new Set(cases.map((item) => item.status))].map((value) =>
+                  <option key={value} value={value}>{value}</option>)}
               </select>
             </label>
           </div>
@@ -219,8 +222,9 @@ function CaseLibrary() {
               <thead>
                 <tr>
                   <th>CASE IDENTIFIER</th>
-                  <th>CASE TITLE</th>
-                  <th>INVESTIGATOR</th>
+                  <th>CASE TYPE</th>
+                  <th>TAGS</th>
+                  <th>CREATED BY</th>
                   <th>EVIDENCE</th>
                   <th>STATUS</th>
                   <th>LAST UPDATED</th>
@@ -232,19 +236,27 @@ function CaseLibrary() {
                 {filteredCases.map((item) => (
                   <tr key={item.id}>
                     <td>
-                      <span className="library-case-id">
-                        {item.id}
-                      </span>
+                      <button className="library-case-id" type="button" onClick={() =>
+                        navigate(`${routes["Case Detail"]}?caseId=${encodeURIComponent(item.id)}`)}>
+                        {item.caseNumber}
+                      </button>
                     </td>
 
                     <td className="library-case-title">
                       {item.title}
                     </td>
 
+                    <td>
+                      <div className="library-case-tags">
+                        {item.tags.length ? item.tags.map((tag) =>
+                          <span key={tag}>{tag}</span>) : <span className="library-no-tags">None</span>}
+                      </div>
+                    </td>
+
                     <td>{item.investigator}</td>
 
                     <td>
-                      {String(item.evidence).padStart(2, "0")} files
+                      {item.evidence == null ? "—" : `${item.evidence} files`}
                     </td>
 
                     <td>
@@ -265,14 +277,14 @@ function CaseLibrary() {
                       <button
                         type="button"
                         className="library-open-button"
-                        aria-label={`Open ${item.id}`}
+                        aria-label={`Open ${item.caseNumber}`}
                         onClick={() =>
                           navigate(
                             `${routes["Case Detail"]}?caseId=${encodeURIComponent(item.id)}`
                           )
                         }
                       >
-                        <ArrowUpRight size={16} />
+                        <ArrowUpRight size={16} /> Open case
                       </button>
                     </td>
                   </tr>
@@ -280,8 +292,8 @@ function CaseLibrary() {
 
                 {filteredCases.length === 0 && (
                   <tr>
-                    <td colSpan="7" className="library-empty">
-                      No records match your search.
+                    <td colSpan="8" className="library-empty">
+                      {loading ? "Loading cases and tags…" : error || loadError || "No records match your search."}
                     </td>
                   </tr>
                 )}
@@ -294,7 +306,7 @@ function CaseLibrary() {
               SHOWING {filteredCases.length} OF {cases.length} RECORDS
             </span>
 
-            <span>ARCHIVE NODE: APSY-SECURE-01</span>
+            <span>LIVE CASE RECORDS</span>
           </div>
         </section>
 
@@ -305,14 +317,14 @@ function CaseLibrary() {
             <strong>SECURE ARCHIVE</strong>
 
             <span>
-              Case records displayed here are demonstration data until
-              the live API is connected.
+              Case records shown here are retrieved from the Case Vault API.
             </span>
           </p>
         </div>
       </div>
-    </VaultLayout>
   );
+
+  return embedded ? content : <VaultLayout activeTab="Case Library" onTabChange={goTo}>{content}</VaultLayout>;
 }
 
 export default CaseLibrary;

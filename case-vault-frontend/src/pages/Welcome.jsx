@@ -1,169 +1,72 @@
-
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ShieldCheck,
-  Gauge,
-  Database,
-  Link,
-  ArrowRight,
-  CircleCheck,
-} from "lucide-react";
+import { Gauge, Database, ArrowRight, CircleCheck, ShieldCheck, FileText } from "lucide-react";
 import VaultLayout from "../layouts/VaultLayout";
+import { useAuth } from "../auth/context";
+import { api } from "../lib/api";
+import { displayRoleName } from "../lib/roles";
 import "./Welcome.css";
 
 const routes = {
-  Overview: "/welcome",
-  "Case Library": "/cases",
-  "Case Detail": "/cases/detail",
-  "Secure Submission": "/secure-submission",
-  "Audit Trail": "/audit",
-  "Access Control": "/access-control",
+  Overview: "/welcome", "Case Library": "/cases", "Case Detail": "/cases/detail",
+  "Secure Submission": "/submission", "Audit Trail": "/audit", "Access Control": "/access-control",
 };
-
-const pathways = [
-  {
-    icon: Gauge,
-    title: "Dossier Overview",
-    description:
-      "System health metrics, tamper alerts, and recently secured evidence logs.",
-    tab: "Overview",
-  },
-  {
-    icon: Database,
-    title: "Secure Case Library",
-    description:
-      "Full list of secure packages, raw capture dumps, and verified logs.",
-    tab: "Case Library",
-  },
-  {
-    icon: Link,
-    title: "Audit Trace Merkle",
-    description:
-      "Review real-time SHA-256 chain of custody and block confirmations.",
-    tab: "Audit Trail",
-  },
-];
 
 function Welcome() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [cases, setCases] = useState([]);
+  const [evidenceCount, setEvidenceCount] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const goTo = (tab) => {
-    const route = routes[tab];
+  useEffect(() => {
+    let active = true;
+    api("/cases").then(async (records) => {
+      const counts = await Promise.all(records.map((record) =>
+        api(`/evidence/by-case/${record.id}`).then((items) => items.length)));
+      if (active) { setCases(records); setEvidenceCount(counts.reduce((sum, count) => sum + count, 0)); }
+    }).catch((requestError) => { if (active) setError(requestError.message); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
-    if (route) {
-      navigate(route);
-    }
-  };
+  const pathways = [
+    { icon: Gauge, title: "Case Overview", description: "Browse active cases and review their current status.", tab: "Case Library", permission: "case:view" },
+    { icon: Database, title: "Secure Submission", description: "Submit a PDF evidence record to an existing case.", tab: "Secure Submission", permission: "evidence:upload" },
+    { icon: FileText, title: "Admin Dashboard", description: "Manage accounts and review archive activity.", tab: "Access Control", permission: "user:manage" },
+  ].filter((item) => !item.permission || user.permissions.includes(item.permission));
 
-  return (
-    <VaultLayout activeTab="Overview" onTabChange={goTo}>
-      <div className="welcome-content">
-        <section className="access-panel">
-          <div className="access-heading">
-            <div className="access-title-row">
-              <CircleCheck className="success-icon" size={25} />
-
-              <div>
-                <h1>VAULT ACCESS GRANTED</h1>
-                <p>
-                  ESTABLISHED SECURE SESSION FOR J. VANCE
-                  (LEVEL-3 ADMIN)
-                </p>
-              </div>
-            </div>
-
-            <div className="hsm-badge">
-              HSM VERIFIED // SESSION-OK
-            </div>
-          </div>
-
-          <div className="panel-divider" />
-
-          <p className="access-description">
-            Welcome to the Autopsy Forensic Ledger. You are currently
-            connected with high-priority credentials. All queries,
-            exports, and document views are tracked in the immutable
-            Merkle tree. Ensure hardware key is kept mounted during
-            session.
-          </p>
-        </section>
-
-        <aside className="right-column">
-          <section className="session-card">
-            <h2>Session Dossier</h2>
-
-            <div className="session-row">
-              <span>Analyst</span>
-              <strong>T. Santos</strong>
-            </div>
-
-            <div className="session-row">
-              <span>Clearance</span>
-              <strong>L3-ADMIN</strong>
-            </div>
-
-            <div className="session-row">
-              <span>Session ID</span>
-              <strong>APSY-9821-FX</strong>
-            </div>
-
-            <div className="session-row">
-              <span>Replica Node</span>
-              <strong>APSY-SECURE-01</strong>
-            </div>
-
-            <div className="session-row">
-              <span>Status</span>
-              <strong className="online">ONLINE</strong>
-            </div>
-          </section>
-
-          <section className="integrity-card">
-            <div className="integrity-title">
-              <ShieldCheck size={15} />
-              <span>LEDGER INTEGRITY OK</span>
-            </div>
-
-            <p>
-              All 3,842 ledger blocks successfully checked.
-              Cryptographic hash trees correspond with master HSM
-              server database.
-            </p>
-          </section>
-        </aside>
-
-        <section className="pathway-section">
-          <h2>CHOOSE DIRECT DOSSIER PATHWAY</h2>
-
-          <div className="pathway-grid">
-            {pathways.map((pathway) => {
-              const Icon = pathway.icon;
-
-              return (
-                <article className="pathway-card" key={pathway.title}>
-                  <div className="pathway-icon">
-                    <Icon size={17} />
-                  </div>
-
-                  <h3>{pathway.title}</h3>
-                  <p>{pathway.description}</p>
-
-                  <button
-                    type="button"
-                    className="open-tab"
-                    onClick={() => goTo(pathway.tab)}
-                  >
-                    OPEN TAB
-                    <ArrowRight size={13} />
-                  </button>
-                </article>
-              );
-            })}
-          </div>
-        </section>
-      </div>
-    </VaultLayout>
-  );
+  return <VaultLayout activeTab="Overview" onTabChange={(tab) => navigate(routes[tab])}>
+    <div className="welcome-content">
+      <section className="access-panel">
+        <div className="access-heading"><div className="access-title-row"><CircleCheck className="success-icon" size={25} />
+          <div><h1>VAULT ACCESS GRANTED</h1><p>SECURE SESSION FOR {user.name.toUpperCase()} · {displayRoleName(user.role_name).toUpperCase()}</p></div>
+        </div><span className="session-badge">SESSION ACTIVE</span></div>
+        <div className="panel-divider" />
+        <p className="access-description">Welcome to the Case Vault forensic archive. Your assigned role controls access to case records and evidence. Authorized actions are recorded in the activity ledger.</p>
+        {error && <p role="alert">{error}</p>}
+      </section>
+      <aside className="right-column"><section className="session-card">
+        <h2>Session Dossier</h2>
+        <div className="session-row"><span>Account</span><strong>{user.name}</strong></div>
+        <div className="session-row"><span>Assigned role</span><strong>{displayRoleName(user.role_name)}</strong></div>
+        <div className="session-row"><span>Cases</span><strong>{loading || error ? "—" : cases.length}</strong></div>
+        <div className="session-row"><span>Open cases</span><strong>{loading || error ? "—" : cases.filter((item) => item.status.toLowerCase() === "open").length}</strong></div>
+        <div className="session-row"><span>Evidence records</span><strong>{loading || error ? "—" : evidenceCount}</strong></div>
+        <div className="session-row"><span>Status</span><strong className="online">ONLINE</strong></div>
+      </section><section className="integrity-card">
+        <div className="integrity-title"><ShieldCheck size={15} /><span>EVIDENCE VERIFICATION</span></div>
+        <p>Check a stored file against its recorded hash from the case detail page.</p>
+      </section></aside>
+      <section className="pathway-section"><h2>CHOOSE A DOSSIER PATHWAY</h2><div className="pathway-grid">
+        {pathways.map((pathway) => { const Icon = pathway.icon; return <article className="pathway-card" key={pathway.title}>
+          <div className="pathway-icon"><Icon size={17} /></div><h3>{pathway.title}</h3><p>{pathway.description}</p>
+          <button type="button" className="open-tab" onClick={() => navigate(routes[pathway.tab])}>OPEN TAB <ArrowRight size={13} /></button>
+        </article>; })}
+      </div></section>
+    </div>
+  </VaultLayout>;
 }
 
 export default Welcome;

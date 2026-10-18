@@ -143,14 +143,33 @@
   min-width: 0;
 }
 
-.submission-field > span {
+.submission-field > span,
+.submission-field-label {
   color: #66594a;
   font-size: 11px;
   font-weight: 600;
 }
 
-.submission-field > span b {
+.submission-field > span b,
+.submission-field-label b {
   color: #974c3d;
+}
+
+.submission-case-message {
+  color: #81776a;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.submission-case-message a,
+.submission-case-message button {
+  border: 0;
+  background: transparent;
+  color: #8c332c;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .submission-field input,
@@ -164,7 +183,6 @@
   background: #fffdf8;
   color: #42372c;
   font-size: 11px;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 .submission-field input,
@@ -221,7 +239,6 @@
   background: #faf6ee;
   text-align: center;
   cursor: pointer;
-  transition: border-color 150ms ease, background 150ms ease;
 }
 
 .submission-dropzone:hover,
@@ -575,7 +592,6 @@
   border-radius: 2px;
   font-size: 10px;
   font-weight: 600;
-  transition: background 150ms ease;
 }
 
 .submission-primary-button {
@@ -654,6 +670,7 @@
 }
 
 .submission-reference > strong {
+  overflow-wrap: anywhere;
   color: #634333;
   font-family: "JetBrains Mono", monospace;
   font-size: 17px;

@@ -1,5 +1,5 @@
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Upload,
   FileText,
@@ -12,17 +12,32 @@ import {
   FolderOpen,
   Clock3,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import VaultLayout from "../layouts/VaultLayout";
+import { useAuth } from "../auth/context";
 import "./SecureSubmission.css";
+import { api } from "../lib/api";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
-function SecureSubmission() {
+function SecureSubmission({ embedded = false, onUploaded }) {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const { user } = useAuth();
+  const canCreateCase = user.permissions.includes("case:create");
+  const requestedCaseId = params.get("caseId") || "";
   const fileInputRef = useRef(null);
 
-  const [caseId, setCaseId] = useState("APSY-2026-001");
+  const [caseId, setCaseId] = useState(requestedCaseId);
+  const [cases, setCases] = useState([]);
+  const [casesLoading, setCasesLoading] = useState(true);
+  const [casesLoadedFor, setCasesLoadedFor] = useState(null);
+  const [casesError, setCasesError] = useState("");
+  const [casesReload, setCasesReload] = useState(0);
+  const caseListLoading = casesLoading || casesLoadedFor !== requestedCaseId;
+  const availableCases = caseListLoading || casesError ? [] : cases;
+  const selectedCase = availableCases.find((item) => item.id === caseId);
+  const [submitting, setSubmitting] = useState(false);
   const [evidenceTitle, setEvidenceTitle] = useState("");
   const [evidenceType, setEvidenceType] = useState("Device Extraction Report");
   const [description, setDescription] = useState("");
@@ -34,6 +49,35 @@ function SecureSubmission() {
   const [submitted, setSubmitted] = useState(false);
   const [reference, setReference] = useState("");
 
+  useEffect(() => {
+    let active = true;
+    api("/cases").then((records) => {
+      if (active) {
+        setCases(records);
+        setCasesError("");
+        setCasesLoadedFor(requestedCaseId);
+        setCaseId((current) => {
+          const preferred = requestedCaseId || current;
+          return records.some((item) => item.id === preferred) ? preferred : "";
+        });
+      }
+    }).catch((requestError) => {
+      if (active) {
+        setCases([]);
+        setCaseId("");
+        setCasesError(requestError.message);
+        setCasesLoadedFor(requestedCaseId);
+      }
+    }).finally(() => { if (active) setCasesLoading(false); });
+    return () => { active = false; };
+  }, [requestedCaseId, casesReload]);
+
+  const retryCases = () => {
+    setCasesLoading(true);
+    setCasesError("");
+    setCasesReload((current) => current + 1);
+  };
+
   const selectFile = (selectedFile) => {
     setError("");
     setSubmitted(false);
@@ -41,7 +85,7 @@ function SecureSubmission() {
     if (!selectedFile) return;
 
     if (
-      selectedFile.type !== "application/pdf" &&
+      selectedFile.type !== "application/pdf" ||
       !selectedFile.name.toLowerCase().endsWith(".pdf")
     ) {
       setError("Only PDF files are accepted.");
@@ -71,7 +115,7 @@ function SecureSubmission() {
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
 
@@ -80,18 +124,36 @@ function SecureSubmission() {
       return;
     }
 
+    if (!selectedCase) { setError("Choose an existing case first."); return; }
+
     if (!evidenceTitle.trim()) {
       setError("Please enter an evidence title.");
       return;
     }
 
-    const newReference = `DEMO-${Date.now().toString().slice(-8)}`;
-    setReference(newReference);
-    setSubmitted(true);
+    const form = new FormData();
+    form.append("case_id", caseId);
+    form.append("evidence_type", evidenceType);
+    form.append("title", evidenceTitle.trim());
+    form.append("description", description.trim());
+    form.append("source_device", sourceDevice.trim());
+    form.append("notes", notes.trim());
+    form.append("file", file);
+    setSubmitting(true);
+    try {
+      const created = await api("/evidence", { method: "POST", body: form });
+      setReference(created.id);
+      setSubmitted(true);
+      onUploaded?.();
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const resetForm = () => {
-    setCaseId("APSY-2026-001");
+    setCaseId("");
     setEvidenceTitle("");
     setEvidenceType("Device Extraction Report");
     setDescription("");
@@ -120,11 +182,7 @@ function SecureSubmission() {
     if (routes[tab]) navigate(routes[tab]);
   };
 
-  return (
-    <VaultLayout
-      activeTab="Secure Submission"
-      onTabChange={goTo}
-    >
+  const content = (
       <div className="submission-page">
 
 
@@ -151,22 +209,21 @@ function SecureSubmission() {
             <div className="submission-success-icon">
               <CheckCircle2 size={32} />
             </div>
-            <span className="submission-eyebrow">DEMONSTRATION COMPLETE</span>
-            <h2>Submission Prepared</h2>
+            <span className="submission-eyebrow">UPLOAD COMPLETE</span>
+            <h2>Evidence Saved</h2>
             <p>
-              Your form passed the local checks. No file has been uploaded
-              to the server, and no integrity hash has been verified.
+              The PDF and evidence metadata were saved to the Case Vault backend.
             </p>
 
             <div className="submission-reference">
-              <span>DEMONSTRATION REFERENCE</span>
+              <span>EVIDENCE IDENTIFIER</span>
               <strong>{reference}</strong>
             </div>
 
             <div className="submission-success-details">
               <div>
                 <span>CASE IDENTIFIER</span>
-                <strong>{caseId}</strong>
+                <strong>{cases.find((item) => item.id === caseId)?.case_number || caseId}</strong>
               </div>
               <div>
                 <span>EVIDENCE TITLE</span>
@@ -185,8 +242,7 @@ function SecureSubmission() {
             <div className="submission-demo-notice">
               <AlertTriangle size={16} />
               <span>
-                This is a frontend-only demonstration. The record is not
-                saved to the database.
+                Integrity can be checked from the case detail page.
               </span>
             </div>
 
@@ -201,7 +257,9 @@ function SecureSubmission() {
               <button
                 type="button"
                 className="submission-primary-button"
-                onClick={() => navigate("/cases")}
+                onClick={() => embedded
+                  ? document.getElementById("admin-case-library")?.scrollIntoView()
+                  : navigate("/cases")}
               >
                 Return to Case Library
               </button>
@@ -224,27 +282,30 @@ function SecureSubmission() {
                   </div>
 
                   <div className="submission-fields">
-                    <label className="submission-field">
-                      <span>Associated Case <b>*</b></span>
+                    <div className="submission-field">
+                      <label className="submission-field-label" htmlFor="submission-associated-case">Associated Case <b>*</b></label>
                       <select
+                        id="submission-associated-case"
                         value={caseId}
                         onChange={(event) => setCaseId(event.target.value)}
+                        disabled={caseListLoading || Boolean(casesError) || availableCases.length === 0 || submitting}
                         required
                       >
-                        <option value="APSY-2026-001">
-                          APSY-2026-001 · Digital Device Extraction
-                        </option>
-                        <option value="APSY-2026-002">
-                          APSY-2026-002 · Network Intrusion Analysis
-                        </option>
-                        <option value="APSY-2026-003">
-                          APSY-2026-003 · Mobile Artifact Examination
-                        </option>
-                        <option value="APSY-2026-004">
-                          APSY-2026-004 · System Log Reconstruction
-                        </option>
+                        <option value="" disabled>Select a case</option>
+                        {availableCases.map((item) => <option key={item.id} value={item.id}>
+                          {item.case_number} — {item.case_type}
+                        </option>)}
                       </select>
-                    </label>
+                      {caseListLoading && <div className="submission-case-message" role="status">Loading cases…</div>}
+                      {!caseListLoading && casesError && <div className="submission-case-message" role="alert">
+                        Could not load cases: {casesError} <button type="button" onClick={retryCases}>Retry</button>
+                      </div>}
+                      {!caseListLoading && !casesError && availableCases.length === 0 &&
+                        <div className="submission-case-message" role="status">
+                          No cases available. Create a case first.
+                          {canCreateCase && <> <Link to="/cases/new">Create a case</Link></>}
+                        </div>}
+                    </div>
 
                     <label className="submission-field">
                       <span>Evidence Title <b>*</b></span>
@@ -253,7 +314,8 @@ function SecureSubmission() {
                         value={evidenceTitle}
                         onChange={(event) => setEvidenceTitle(event.target.value)}
                         placeholder="e.g. Device Extraction Report"
-                        maxLength={150}
+                        minLength={2}
+                        maxLength={255}
                         required
                       />
                     </label>
@@ -286,14 +348,13 @@ function SecureSubmission() {
                     </label>
 
                     <label className="submission-field submission-field-full">
-                      <span>Description <b>*</b></span>
+                      <span>Description (optional)</span>
                       <textarea
                         value={description}
                         onChange={(event) => setDescription(event.target.value)}
                         placeholder="Describe the evidence and its relevance to the case..."
                         rows={4}
                         maxLength={2000}
-                        required
                       />
                       <small>{description.length}/2000 characters</small>
                     </label>
@@ -379,7 +440,7 @@ function SecureSubmission() {
                           {formatSize(file.size)} · PDF DOCUMENT
                         </span>
                         <small>
-                          Selected locally; not uploaded to the server.
+                          Ready to upload to the server.
                         </small>
                       </div>
                       <button
@@ -403,9 +464,7 @@ function SecureSubmission() {
                     <p>
                       <strong>File validation</strong>
                       <span>
-                        The browser checks the PDF extension and file size.
-                        Server-side validation and integrity verification are
-                        not yet connected.
+                        The server parses PDF content and stores a SHA-256 hash.
                       </span>
                     </p>
                   </div>
@@ -426,7 +485,7 @@ function SecureSubmission() {
 
                   <div className="submission-summary-row">
                     <span>Case Identifier</span>
-                    <strong>{caseId}</strong>
+                    <strong>{selectedCase?.case_number || "No case selected"}</strong>
                   </div>
                   <div className="submission-summary-row">
                     <span>Classification</span>
@@ -453,14 +512,13 @@ function SecureSubmission() {
                     </div>
                     <div>
                       <strong>Integrity verification</strong>
-                      <span>Pending backend integration</span>
+                      <span>Available after upload</span>
                     </div>
                   </div>
 
                   <div className="submission-summary-notice">
                     <Clock3 size={15} />
-                    A real evidence record and cryptographic hash will be
-                    generated by the backend in a later step.
+                    The backend stores a version record and SHA-256 hash when the PDF is uploaded.
                   </div>
                 </section>
 
@@ -482,8 +540,7 @@ function SecureSubmission() {
                     <span>Review the associated case</span>
                   </div>
                   <p>
-                    This demo prepares a local confirmation only. It does not
-                    preserve a legal chain of custody.
+                    Submission writes an evidence record and an audit event.
                   </p>
                 </section>
               </aside>
@@ -500,7 +557,7 @@ function SecureSubmission() {
               <div className="submission-footer-note">
                 <LockKeyhole size={15} />
                 <span>
-                  DEMONSTRATION MODE <span>·</span> NO SERVER UPLOAD
+                  SERVER VALIDATION <span>·</span> PDF ONLY
                 </span>
               </div>
 
@@ -515,17 +572,19 @@ function SecureSubmission() {
                 <button
                   type="submit"
                   className="submission-primary-button"
+                  disabled={submitting || !selectedCase}
                 >
                   <ShieldCheck size={16} />
-                  Prepare Submission
+                  {submitting ? "Uploading…" : "Upload Evidence"}
                 </button>
               </div>
             </div>
           </form>
         )}
       </div>
-    </VaultLayout>
   );
+
+  return embedded ? content : <VaultLayout activeTab="Secure Submission" onTabChange={goTo}>{content}</VaultLayout>;
 }
 
 export default SecureSubmission;

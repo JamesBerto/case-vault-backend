@@ -6,6 +6,16 @@
   color: #30251f;
 }
 
+.library-page-embedded .library-embedded-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.library-page-embedded .library-stats {
+  margin-bottom: 16px;
+}
+
 .library-heading {
   display: flex;
   align-items: flex-end;
@@ -49,7 +59,6 @@
   background: #3c2b25;
   color: #fbf9f5;
   font-size: 12px;
-  transition: background 160ms ease;
 }
 
 .library-create-button:hover {
@@ -220,7 +229,6 @@
 }
 
 .library-table tbody tr {
-  transition: background 140ms ease;
 }
 
 .library-table tbody tr:hover {
@@ -228,14 +236,42 @@
 }
 
 .library-case-id {
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: #8c332c;
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .library-table td.library-case-title {
   color: #30251f;
   font-weight: 600;
+}
+
+.library-case-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-width: 240px;
+  white-space: normal;
+}
+
+.library-case-tags > span {
+  padding: 4px 7px;
+  border: 1px solid #d7cabb;
+  background: #f0e8dc;
+  color: #614c3c;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.library-case-tags > .library-no-tags {
+  border: 0;
+  background: transparent;
+  color: #938678;
 }
 
 .library-status {
@@ -272,13 +308,17 @@
 }
 
 .library-open-button {
-  width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 8px;
   border: 1px solid transparent;
   background: transparent;
   color: #674a38;
+  font-size: 10px;
+  white-space: nowrap;
 }
 
 .library-open-button:hover {
