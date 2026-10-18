@@ -20,7 +20,7 @@ function categoryFor(action) {
 function statusFor(entry) {
   if (entry.action === "evidence_verification_failed") return "Check failed";
   if (entry.action === "tamper_flagged" || entry.metadata?.intact === false) return "Flagged";
-  if (entry.action === "evidence_verified" && entry.metadata?.intact === true) return "Verified";
+  if (entry.action === "evidence_verified" && entry.metadata?.intact === true) return "Intact";
   return "Recorded";
 }
 
@@ -82,7 +82,7 @@ function AuditTrail() {
             {["All", "Account", "Case", "Evidence", "Integrity"].map((value) =>
               <option key={value} value={value}>{"\u00A0\u00A0\u00A0"}{value}</option>)}</select></label>
           <label className="audit-select"><select value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Filter status">
-            {["All", "Recorded", "Verified", "Flagged", "Check failed"].map((value) =>
+            {["All", "Recorded", "Intact", "Flagged", "Check failed"].map((value) =>
               <option key={value} value={value}>{"\u00A0\u00A0\u00A0"}{value}</option>)}</select></label>
         </div>
         <div className="audit-table-wrap"><table className="audit-table"><thead><tr>

@@ -35,7 +35,7 @@ function activityCategoryFor(action) {
 function activityStatusFor(entry) {
   if (entry.action === "evidence_verification_failed") return "Check failed";
   if (entry.action === "tamper_flagged" || entry.metadata?.intact === false) return "Flagged";
-  if (entry.action === "evidence_verified" && entry.metadata?.intact === true) return "Verified";
+  if (entry.action === "evidence_verified" && entry.metadata?.intact === true) return "Intact";
   return "Recorded";
 }
 
@@ -48,7 +48,7 @@ function accountStatus(person, onlineUserIds, presenceAvailable) {
 function integrityStatus(entry) {
   if (!entry) return "Not checked";
   if (entry.action === "evidence_verification_failed") return "Check failed";
-  if (entry.metadata?.intact === true) return "Verified";
+  if (entry.metadata?.intact === true) return "Intact";
   if (entry.metadata?.intact === false) return "Mismatch detected";
   return "Result unavailable";
 }
@@ -323,7 +323,7 @@ function AccessControl({ asOverview = false }) {
               <div><span>CHECKED BY</span><strong>{users.find((person) => person.id === latestIntegrity.actor_user_id)?.name || latestIntegrity.actor_user_id}</strong></div>
               <div><span>EVIDENCE</span><strong>{checkedEvidence?.id === latestIntegrity.evidence_id ? checkedEvidence.title : `ID ${latestIntegrity.evidence_id}`}</strong></div>
               <div><span>VERSION</span><strong>{latestIntegrity.metadata?.version_id || "Not recorded"}</strong></div>
-              <div><span>RESULT</span><strong className={latestIntegrity.action === "evidence_verification_failed" || latestIntegrity.metadata?.intact === false ? "admin-integrity-mismatch" : ""}>{latestIntegrity.action === "evidence_verification_failed" ? "Check failed" : latestIntegrity.metadata?.intact === true ? "Verified" : latestIntegrity.metadata?.intact === false ? "Mismatch detected" : "Result unavailable"}</strong></div>
+              <div><span>RESULT</span><strong className={latestIntegrity.action === "evidence_verification_failed" || latestIntegrity.metadata?.intact === false ? "admin-integrity-mismatch" : ""}>{latestIntegrity.action === "evidence_verification_failed" ? "Check failed" : latestIntegrity.metadata?.intact === true ? "Intact" : latestIntegrity.metadata?.intact === false ? "Mismatch detected" : "Result unavailable"}</strong></div>
               <small>{latestIntegrity.action === "evidence_verification_failed" ? "Verification could not finish because the stored file was unavailable." : latestIntegrity.metadata?.intact === true ? "The file matched its baseline at the displayed check time." : latestIntegrity.metadata?.intact === false ? "The computed hash differed from the baseline." : "This record has no comparison result."}</small>
               {latestIntegrity.case_id && <button type="button" className="admin-integrity-link" onClick={() => navigate(`/cases/detail?caseId=${encodeURIComponent(latestIntegrity.case_id)}`)}>Open evidence case</button>}
             </div>
@@ -339,7 +339,7 @@ function AccessControl({ asOverview = false }) {
           <label className="access-select"><span>Category</span><select value={activityCategory} onChange={(event) => setActivityCategory(event.target.value)}>
             {["All", "Account", "Case", "Evidence", "Integrity"].map((value) => <option key={value}>{value}</option>)}</select></label>
           <label className="access-select"><span>Status</span><select value={activityStatus} onChange={(event) => setActivityStatus(event.target.value)}>
-            {["All", "Recorded", "Verified", "Flagged", "Check failed"].map((value) => <option key={value}>{value}</option>)}</select></label></div>}
+            {["All", "Recorded", "Intact", "Flagged", "Check failed"].map((value) => <option key={value}>{value}</option>)}</select></label></div>}
         <div className="admin-activity-list">{(showAllActivity ? filteredActivity : auditEntries.slice(0, 5)).map((entry) => <details className="admin-activity-entry" key={entry.id}>
           <summary className="admin-activity-row"><span className="admin-activity-icon"><Activity size={15} /></span><div><strong>{entry.action.replaceAll("_", " ")}</strong><small>{entry.case_id ? `Case ${cases.find((record) => record.id === entry.case_id)?.case_number || entry.case_id}` : entry.evidence_id ? `Evidence ${entry.evidence_id}` : "Account or system activity"}</small></div>
           <span className="admin-activity-actor">{users.find((person) => person.id === entry.actor_user_id)?.name || entry.actor_user_id}</span>

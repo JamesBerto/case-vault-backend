@@ -190,7 +190,7 @@ function CaseDetail() {
     try {
       const result = await api(`/evidence/${item.id}/versions/${version.id}/verify`);
       setChecks((current) => ({ ...current, [version.id]: {
-        status: result.intact ? "Verified" : "Mismatch detected",
+        status: result.intact ? "Intact" : "Mismatch detected",
         checked_at: result.checked_at, actor_user_id: result.actor_user_id, intact: result.intact,
       } }));
       setVersions((current) => current[item.id]?.id === version.id

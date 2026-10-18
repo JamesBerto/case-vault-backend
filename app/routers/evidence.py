@@ -265,7 +265,7 @@ async def verification_status(evidence_id: str, version_id: str, current_user: U
     entry = entries[0]
     intact = entry.metadata.get("intact") if entry.action == "evidence_verified" else None
     status = ("Check failed" if entry.action == "evidence_verification_failed" else
-              "Verified" if intact is True else "Mismatch detected" if intact is False else "Result unavailable")
+              "Intact" if intact is True else "Mismatch detected" if intact is False else "Result unavailable")
     return {"version_id": version_id, "status": status, "checked_at": entry.occurred_at,
             "actor_user_id": entry.actor_user_id, "intact": intact}
 

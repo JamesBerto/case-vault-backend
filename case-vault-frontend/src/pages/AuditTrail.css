@@ -436,13 +436,13 @@
   background: #9a8b75;
 }
 
-.audit-status-verified {
+.audit-status-intact {
   border-color: #d2dec8;
   background: #edf2e8;
   color: #5d784e;
 }
 
-.audit-status-verified > span {
+.audit-status-intact > span {
   background: #6e8a5a;
 }
 

@@ -241,7 +241,7 @@ async def exercise_database(monkeypatch):
             assert expect(await api.get(f"/evidence/{evidence_id}/versions/{version_id}/verify",
                                         headers=reviewer), 200)["intact"] is True
             checked_status = expect(await api.get(status_path, headers=reviewer), 200)
-            assert checked_status["status"] == "Verified" and checked_status["checked_at"]
+            assert checked_status["status"] == "Intact" and checked_status["checked_at"]
             assert checked_status["actor_user_id"] == reviewer_user["id"]
             chunk = await db.fs.chunks.find_one({"files_id": ObjectId(first.storage_path)})
             changed = bytearray(chunk["data"])
