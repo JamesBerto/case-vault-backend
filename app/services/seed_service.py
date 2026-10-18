@@ -15,13 +15,16 @@ PERMISSIONS = [
     "case:delete",
     "evidence:upload",
     "evidence:view",
+    "evidence:delete",
+    "tag:assign",
+    "tag:create",
     "user:manage",
 ]
 
 ROLE_PERMISSION_MAP = {
     "admin": PERMISSIONS,
-    "analyst": ["case:create", "case:view", "evidence:upload", "evidence:view"],
-    "reviewer": ["case:view", "case:update_status", "evidence:view"],
+    "analyst": ["case:create", "case:view", "evidence:upload", "evidence:view", "tag:create", "tag:assign"],
+    "reviewer": ["case:view", "case:update_status", "evidence:view", "tag:assign"],
 }
 
 FIRST_ADMIN_EMAIL = "admin@casevault.org"
@@ -82,15 +85,17 @@ async def seed_first_admin(roles) -> None:
         hashed_password=hash_password(FIRST_ADMIN_PASSWORD),
         is_active=True,
     ).insert()
-    print(f"Created first admin: {FIRST_ADMIN_EMAIL} / {FIRST_ADMIN_PASSWORD}")
+    print(f"Created first admin: {FIRST_ADMIN_EMAIL}; change the bootstrap password immediately")
 
 
 async def run_seed():
-    await init_db()
+    await init_db(require_migration=False)
     roles = await seed_roles()
     permissions = await seed_permissions()
     await seed_role_permissions(roles, permissions)
     await seed_first_admin(roles)
+    from app.services.migration_service import run_migration
+    await run_migration()
     print("Seeding complete.")
 
 

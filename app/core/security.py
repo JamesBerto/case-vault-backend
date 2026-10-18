@@ -4,7 +4,7 @@ from jose import jwt, JWTError
 from app.core.config import settings
 
 # --- Password hashing ---
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated=["bcrypt"])
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)

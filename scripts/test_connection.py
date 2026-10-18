@@ -1,7 +1,8 @@
 import certifi
 from pymongo import MongoClient
+from app.core.config import settings
 
-uri = "mongodb+srv://jamesberto24_db_user:DaGs6MhupJRRvTzO@casevault-admin.e9g8xua.mongodb.net/?appName=casevault-admin"
+uri = settings.MONGO_URI
 
 client = MongoClient(uri, tlsCAFile=certifi.where())
 try:

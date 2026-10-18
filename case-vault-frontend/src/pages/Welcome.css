@@ -1,0 +1,345 @@
+
+.welcome-content {
+  display: grid;
+  grid-template-columns: minmax(0, 2.1fr) minmax(255px, 0.85fr);
+  grid-template-areas:
+    "access sidebar"
+    "pathways sidebar";
+  align-items: start;
+  gap: 18px 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.access-panel {
+  grid-area: access;
+  min-width: 0;
+  min-height: 182px;
+  padding: 24px;
+  background: #fbf9f5;
+  border: 1px solid #716256;
+  border-radius: 3px;
+}
+
+.access-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.access-title-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+}
+
+.success-icon {
+  flex: 0 0 auto;
+  color: #35784c;
+  background: #e7f0e8;
+  border-radius: 50%;
+  padding: 4px;
+  width: 30px;
+  height: 30px;
+}
+
+.access-title-row h1 {
+  margin: 0;
+  color: #2a211c;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(23px, 2vw, 30px);
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+.access-title-row p {
+  margin: 5px 0 0;
+  color: #78685c;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.session-badge {
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  border: 1px solid #91b59a;
+  border-radius: 2px;
+  background: #e5eee5;
+  color: #285d39;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  text-align: center;
+}
+
+.panel-divider {
+  height: 1px;
+  margin: 19px 0 13px;
+  background: #ded4c7;
+}
+
+.access-description {
+  margin: 0;
+  color: #4c4037;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.right-column {
+  grid-area: sidebar;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  min-width: 0;
+}
+
+.session-card {
+  padding: 15px;
+  background: #fbf9f5;
+  border: 1px solid #716256;
+  border-radius: 3px;
+}
+
+.session-card h2 {
+  margin: 0 0 14px;
+  color: #2d231d;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.session-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 11px;
+  color: #77685d;
+  font-size: 11px;
+}
+
+.session-row strong {
+  max-width: 65%;
+  overflow-wrap: anywhere;
+  color: #2e241e;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.session-row strong.online {
+  color: #2e7046;
+}
+
+.integrity-card {
+  padding: 14px;
+  background: #f8f6ef;
+  border: 1px solid #86a98c;
+  border-radius: 3px;
+}
+
+.integrity-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #315d3b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.integrity-title svg {
+  flex: 0 0 auto;
+}
+
+.integrity-card p {
+  margin: 12px 0 0;
+  color: #4d6550;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.pathway-section {
+  grid-area: pathways;
+  min-width: 0;
+}
+
+.pathway-section > h2 {
+  margin: 0 0 10px;
+  color: #4a392d;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.pathway-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pathway-card {
+  min-width: 0;
+  min-height: 136px;
+  padding: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: #fbf9f5;
+  border: 1px solid #ded3c4;
+  border-radius: 3px;
+}
+
+.pathway-card:hover {
+  border-color: #b5a28c;
+  box-shadow: 0 5px 14px rgb(55 37 24 / 7%);
+}
+
+.pathway-icon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 8px;
+  display: grid;
+  place-items: center;
+  background: #f2ece2;
+  color: #47372b;
+  border: 1px solid #ebe1d4;
+  border-radius: 3px;
+}
+
+.pathway-card h3 {
+  margin: 0 0 6px;
+  color: #30241d;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.pathway-card p {
+  margin: 0 0 10px;
+  color: #78685c;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.open-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: auto;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #8c332c;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+}
+
+.open-tab:focus-visible {
+  outline: 2px solid #8c332c;
+  outline-offset: 4px;
+}
+
+@media (max-width: 1050px) {
+  .welcome-content {
+    grid-template-columns: minmax(0, 1fr) minmax(235px, 0.7fr);
+    gap: 18px;
+  }
+
+  .pathway-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pathway-card:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .access-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 760px) {
+  .welcome-content {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "access"
+      "sidebar"
+      "pathways";
+  }
+
+  .access-panel {
+    padding: 20px;
+  }
+
+  .access-title-row h1 {
+    font-size: 21px;
+  }
+
+  .access-description {
+    font-size: 12px;
+  }
+
+  .right-column {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .session-card,
+  .integrity-card {
+    padding: 15px;
+  }
+
+  .pathway-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pathway-card:last-child {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 500px) {
+  .right-column,
+  .pathway-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .access-title-row {
+    align-items: flex-start;
+  }
+
+  .access-title-row h1 {
+    font-size: 19px;
+  }
+
+  .access-title-row p {
+    font-size: 8px;
+  }
+
+  .session-badge {
+    max-width: 100%;
+    font-size: 8px;
+  }
+
+  .session-row {
+    font-size: 12px;
+  }
+
+  .session-row strong {
+    font-size: 10px;
+  }
+
+  .pathway-card {
+    min-height: 150px;
+  }
+}

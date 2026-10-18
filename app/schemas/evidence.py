@@ -23,5 +23,8 @@ class EvidenceResponse(BaseModel):
     submitted_by: str
     evidence_type: str
     title: str
+    description: str | None = None
+    source_device: str | None = None
+    notes: str | None = None
     current_version_id: str | None
     created_at: datetime

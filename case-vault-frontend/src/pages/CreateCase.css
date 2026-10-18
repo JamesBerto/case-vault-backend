@@ -1,0 +1,107 @@
+.create-case-page {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 8px 0 30px;
+  color: #30251f;
+}
+
+.create-case-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: #776d60;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.create-case-back:hover { color: #8c332c; }
+
+.create-case-heading { margin-bottom: 27px; }
+.create-case-heading > span {
+  color: #8c332c;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+.create-case-heading h1 {
+  margin: 10px 0 8px;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(28px, 3vw, 39px);
+  font-weight: 400;
+}
+.create-case-heading p {
+  margin: 0;
+  color: #78695d;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.create-case-form {
+  display: grid;
+  gap: 20px;
+  padding: 28px;
+  border: 1px solid #d7cabc;
+  background: #fbf9f5;
+}
+.create-case-form-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #765541;
+}
+.create-case-form-title h2 {
+  margin: 0;
+  color: #30251f;
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+}
+.create-case-form label { display: grid; gap: 9px; }
+.create-case-form label span { color: #66594a; font-size: 11px; font-weight: 600; }
+.create-case-form label b { color: #974c3d; }
+.create-case-form input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #ddd2c2;
+  border-radius: 2px;
+  background: #fffdf8;
+  color: #42372c;
+  font-size: 12px;
+}
+.create-case-form input:focus { outline: 2px solid #a78364; outline-offset: 1px; }
+.create-case-error {
+  padding: 12px;
+  border: 1px solid #d5a39d;
+  background: #f8ebe7;
+  color: #8c332c;
+  font-size: 12px;
+}
+.create-case-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 18px;
+  border-top: 1px solid #e1d7ca;
+}
+.create-case-actions button {
+  min-height: 42px;
+  padding: 0 18px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.create-case-actions button:disabled,
+.create-case-back:disabled { opacity: 0.6; cursor: not-allowed; }
+.create-case-cancel { border: 1px solid #d7cabc; background: #fffdf8; color: #66594a; }
+.create-case-submit { border: 1px solid #3c2b25; background: #3c2b25; color: #fbf9f5; }
+.create-case-submit:hover:not(:disabled) { background: #5b4034; }
+
+@media (max-width: 600px) {
+  .create-case-form { padding: 20px; }
+  .create-case-actions { flex-wrap: wrap; }
+}
