@@ -177,3 +177,14 @@
   font-size: 7px;
   color: #51443d;
 }
+.login-error {
+  margin: 0 0 12px;
+  color: #a12e28;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.access-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}

@@ -6,6 +6,7 @@ import CaseDetail from "./pages/CaseDetail";
 import SecureSubmission from "./pages/SecureSubmission";
 import AuditTrail from "./pages/AuditTrail";
 import AccessControl from "./pages/AccessControl";
+import AdminPanel from "./pages/AdminPanel";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/submission" element={<SecureSubmission />} />
         <Route path="/audit" element={<AuditTrail />} />
         <Route path="/access-control" element={<AccessControl />} />
+        <Route path="/admin" element={<AdminPanel />} />
       </Routes>
     </BrowserRouter>
   );

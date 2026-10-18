@@ -311,7 +311,7 @@ function CaseDetail({ onNavigate }) {
                 <button
                   className="detail-file-action"
                   type="button"
-                  title="Demo action: file preview is not connected"
+                  title="Delete Evidence"
                   onClick={() =>
                     window.alert(
                       "This is demonstration data. Evidence preview will be available after backend integration."

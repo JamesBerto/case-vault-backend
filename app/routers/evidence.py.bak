@@ -1,0 +1,420 @@
+
+from datetime import datetime
+
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    UploadFile,
+    File,
+    Form,
+)
+
+from app.dependencies.auth import get_current_user, require_permission
+from app.models.case import Case
+from app.models.evidence import Evidence
+from app.models.evidence_version import EvidenceVersion
+from app.models.user import User
+from app.services.audit_service import log_action
+from app.services.storage_service import store_file, verify_integrity
+
+
+router = APIRouter(prefix="/evidence", tags=["evidence"])
+
+ALLOWED_TYPES = {"application/pdf"}
+
+
+async def evidence_to_dict(evidence: Evidence) -> dict:
+    """Convert an evidence record into the response used by the frontend."""
+
+    case = await Case.get(evidence.case_id)
+
+    version = (
+        await EvidenceVersion.get(evidence.current_version_id)
+        if evidence.current_version_id
+        else None
+    )
+
+    user = await User.get(evidence.submitted_by)
+
+    intact = None
+
+    if version:
+        intact = await verify_integrity(
+            version.storage_path,
+            version.file_hash,
+        )
+
+        if not intact and not version.is_tamper_flagged:
+            version.is_tamper_flagged = True
+            await version.save()
+
+    return {
+        "id": str(evidence.id),
+        "evidence_id": str(evidence.id),
+        "case_id": evidence.case_id,
+        "case_number": case.case_number if case else "Unknown case",
+        "title": evidence.title,
+        "evidence_type": evidence.evidence_type,
+        "submitted_by": evidence.submitted_by,
+        "analyst": (
+            getattr(user, "full_name", None)
+            or getattr(user, "name", None)
+            or getattr(user, "email", None)
+            or "Unknown"
+        ),
+        "current_version_id": evidence.current_version_id,
+        "file_name": version.file_name if version else "Unavailable",
+        "file_hash": version.file_hash if version else None,
+        "file_type": version.file_type if version else None,
+        "created_at": evidence.created_at.isoformat(),
+        "uploaded_at": (
+            version.uploaded_at.isoformat()
+            if version
+            else evidence.created_at.isoformat()
+        ),
+        "integrity": (
+            "TAMPERED"
+            if version and not intact
+            else "VERIFIED"
+            if version
+            else "PENDING"
+        ),
+    }
+
+
+# --------------------------------------------------
+# LIST EVIDENCE
+# GET /evidence
+# GET /evidence?case_id=<case_id>
+# --------------------------------------------------
+
+@router.get(
+    "",
+    dependencies=[Depends(require_permission("evidence:view"))],
+)
+async def list_evidence(case_id: str | None = None):
+    if case_id:
+        records = await Evidence.find(
+            Evidence.case_id == case_id
+        ).to_list()
+    else:
+        records = await Evidence.find_all().to_list()
+
+    records.sort(
+        key=lambda record: record.created_at,
+        reverse=True,
+    )
+
+    results = []
+
+    for record in records:
+        results.append(await evidence_to_dict(record))
+
+    return results
+
+
+# --------------------------------------------------
+# UPLOAD NEW EVIDENCE
+# POST /evidence
+# --------------------------------------------------
+
+@router.post(
+    "",
+    status_code=201,
+    dependencies=[Depends(require_permission("evidence:upload"))],
+)
+async def upload_evidence(
+    case_id: str = Form(...),
+    evidence_type: str = Form(...),
+    title: str = Form(...),
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    if file.content_type != "application/pdf":
+        raise HTTPException(
+            status_code=400,
+            detail="Only PDF files are accepted",
+        )
+
+    case = await Case.get(case_id)
+
+    if case is None or case.deleted_at is not None:
+        raise HTTPException(
+            status_code=404,
+            detail="Selected case was not found",
+        )
+
+    if not title.strip():
+        raise HTTPException(
+            status_code=422,
+            detail="Evidence title is required",
+        )
+
+    if not evidence_type.strip():
+        raise HTTPException(
+            status_code=422,
+            detail="Evidence type is required",
+        )
+
+    file_bytes = await file.read()
+
+    if not file_bytes:
+        raise HTTPException(
+            status_code=400,
+            detail="The selected PDF is empty",
+        )
+
+    storage_path, file_hash = await store_file(
+        file_bytes,
+        file.filename or "evidence.pdf",
+    )
+
+    evidence = Evidence(
+        case_id=str(case.id),
+        submitted_by=str(current_user.id),
+        evidence_type=evidence_type.strip(),
+        title=title.strip(),
+    )
+
+    await evidence.insert()
+
+    version = EvidenceVersion(
+        evidence_id=str(evidence.id),
+        uploaded_by=str(current_user.id),
+        version_no=1,
+        file_name=file.filename or "evidence.pdf",
+        file_type=file.content_type,
+        file_hash=file_hash,
+        storage_path=storage_path,
+    )
+
+    await version.insert()
+
+    evidence.current_version_id = str(version.id)
+    await evidence.save()
+
+    await log_action(
+        str(current_user.id),
+        "evidence_uploaded",
+        case_id=str(case.id),
+        evidence_id=str(evidence.id),
+        metadata={
+            "version_no": 1,
+            "file_hash": file_hash,
+        },
+    )
+
+    return await evidence_to_dict(evidence)
+
+
+# --------------------------------------------------
+# UPLOAD A NEW VERSION OF EXISTING EVIDENCE
+# POST /evidence/{evidence_id}/versions
+# --------------------------------------------------
+
+@router.post(
+    "/{evidence_id}/versions",
+    status_code=201,
+    dependencies=[Depends(require_permission("evidence:upload"))],
+)
+async def upload_evidence_version(
+    evidence_id: str,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    if file.content_type != "application/pdf":
+        raise HTTPException(
+            status_code=400,
+            detail="Only PDF files are accepted",
+        )
+
+    evidence = await Evidence.get(evidence_id)
+
+    if evidence is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Evidence not found",
+        )
+
+    case = await Case.get(evidence.case_id)
+
+    if case is None or case.deleted_at is not None:
+        raise HTTPException(
+            status_code=404,
+            detail="Associated case was not found",
+        )
+
+    file_bytes = await file.read()
+
+    if not file_bytes:
+        raise HTTPException(
+            status_code=400,
+            detail="The selected PDF is empty",
+        )
+
+    previous_versions = await EvidenceVersion.find(
+        EvidenceVersion.evidence_id == evidence_id
+    ).to_list()
+
+    next_version_no = (
+        max(version.version_no for version in previous_versions) + 1
+        if previous_versions
+        else 1
+    )
+
+    storage_path, file_hash = await store_file(
+        file_bytes,
+        file.filename or "evidence.pdf",
+    )
+
+    version = EvidenceVersion(
+        evidence_id=str(evidence.id),
+        uploaded_by=str(current_user.id),
+        version_no=next_version_no,
+        file_name=file.filename or "evidence.pdf",
+        file_type=file.content_type,
+        file_hash=file_hash,
+        storage_path=storage_path,
+    )
+
+    await version.insert()
+
+    evidence.current_version_id = str(version.id)
+    await evidence.save()
+
+    await log_action(
+        str(current_user.id),
+        "evidence_version_uploaded",
+        case_id=evidence.case_id,
+        evidence_id=str(evidence.id),
+        metadata={
+            "version_no": next_version_no,
+            "file_hash": file_hash,
+        },
+    )
+
+    return {
+        "message": "New evidence version uploaded successfully",
+        "evidence": await evidence_to_dict(evidence),
+        "version": {
+            "id": str(version.id),
+            "version_no": version.version_no,
+            "file_name": version.file_name,
+            "file_hash": version.file_hash,
+            "file_type": version.file_type,
+            "uploaded_at": version.uploaded_at.isoformat(),
+        },
+    }
+
+
+# --------------------------------------------------
+# LIST ALL VERSIONS OF EVIDENCE
+# GET /evidence/{evidence_id}/versions
+# --------------------------------------------------
+
+@router.get(
+    "/{evidence_id}/versions",
+    dependencies=[Depends(require_permission("evidence:view"))],
+)
+async def list_evidence_versions(evidence_id: str):
+    evidence = await Evidence.get(evidence_id)
+
+    if evidence is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Evidence not found",
+        )
+
+    versions = await EvidenceVersion.find(
+        EvidenceVersion.evidence_id == evidence_id
+    ).to_list()
+
+    versions.sort(
+        key=lambda version: version.version_no,
+        reverse=True,
+    )
+
+    results = []
+
+    for version in versions:
+        results.append(
+            {
+                "id": str(version.id),
+                "evidence_id": version.evidence_id,
+                "version_no": version.version_no,
+                "file_name": version.file_name,
+                "file_type": version.file_type,
+                "file_hash": version.file_hash,
+                "uploaded_by": version.uploaded_by,
+                "uploaded_at": version.uploaded_at.isoformat(),
+                "is_current": (
+                    str(version.id) == evidence.current_version_id
+                ),
+                "is_tamper_flagged": version.is_tamper_flagged,
+            }
+        )
+
+    return results
+
+
+# --------------------------------------------------
+# VERIFY INTEGRITY OF A SPECIFIC VERSION
+# GET /evidence/{evidence_id}/versions/{version_id}/verify
+# --------------------------------------------------
+
+@router.get(
+    "/{evidence_id}/versions/{version_id}/verify",
+    dependencies=[Depends(require_permission("evidence:view"))],
+)
+async def verify_evidence_version(
+    evidence_id: str,
+    version_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    evidence = await Evidence.get(evidence_id)
+
+    if evidence is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Evidence not found",
+        )
+
+    version = await EvidenceVersion.get(version_id)
+
+    if version is None or version.evidence_id != evidence_id:
+        raise HTTPException(
+            status_code=404,
+            detail="Evidence version not found",
+        )
+
+    intact = await verify_integrity(
+        version.storage_path,
+        version.file_hash,
+    )
+
+    if not intact and not version.is_tamper_flagged:
+        version.is_tamper_flagged = True
+        await version.save()
+
+    await log_action(
+        str(current_user.id),
+        "evidence_integrity_verified",
+        case_id=evidence.case_id,
+        evidence_id=evidence_id,
+        metadata={
+            "version_id": version_id,
+            "integrity": "VERIFIED" if intact else "TAMPERED",
+        },
+    )
+
+    return {
+        "evidence_id": evidence_id,
+        "version_id": version_id,
+        "version_no": version.version_no,
+        "file_name": version.file_name,
+        "file_hash": version.file_hash,
+        "integrity": "VERIFIED" if intact else "TAMPERED",
+        "is_tamper_flagged": version.is_tamper_flagged,
+        "verified_at": datetime.utcnow().isoformat(),
+    }
