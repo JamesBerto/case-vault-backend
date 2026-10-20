@@ -33,6 +33,15 @@ def test_pdf_parser_rejects_malformed_content():
     assert error.value.status_code == 400
 
 
+def test_pdf_upload_limit_is_10_mib():
+    file = UploadFile(filename="report.pdf", file=io.BytesIO(), headers={"content-type": "application/pdf"})
+    assert evidence.MAX_FILE_SIZE == 10 * 1024 * 1024
+    with pytest.raises(HTTPException) as error:
+        evidence._validate_pdf(file, b"x" * (evidence.MAX_FILE_SIZE + 1))
+    assert error.value.status_code == 413
+    assert "10 MB" in error.value.detail
+
+
 def test_combined_case_filters_use_creator_and_utc_day_bounds(monkeypatch):
     captured = {}
 

@@ -18,7 +18,7 @@ import { useAuth } from "../auth/context";
 import "./SecureSubmission.css";
 import { api } from "../lib/api";
 
-const MAX_FILE_SIZE = 25 * 1024 * 1024;
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 function SecureSubmission({ embedded = false, onUploaded }) {
   const navigate = useNavigate();
@@ -93,7 +93,7 @@ function SecureSubmission({ embedded = false, onUploaded }) {
     }
 
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setError("The selected file exceeds the 25 MB limit.");
+      setError("The selected file exceeds the 10 MB limit.");
       return;
     }
 
@@ -426,7 +426,7 @@ function SecureSubmission({ embedded = false, onUploaded }) {
                       <span>or click to browse files on your computer</span>
                       <div className="submission-file-rules">
                         <span>PDF ONLY</span>
-                        <span>MAXIMUM 25 MB</span>
+                        <span>MAXIMUM 10 MB</span>
                       </div>
                     </div>
                   ) : (

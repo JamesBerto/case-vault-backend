@@ -25,7 +25,7 @@ from app.services.audit_service import log_action
 from app.services.storage_service import delete_file, fetch_file, store_file, verify_integrity
 
 router = APIRouter(prefix="/evidence", tags=["evidence"])
-MAX_FILE_SIZE = 25 * 1024 * 1024
+MAX_FILE_SIZE = 10 * 1024 * 1024
 
 
 def _evidence_out(e: Evidence) -> EvidenceResponse:
@@ -45,7 +45,7 @@ def _version_out(v: EvidenceVersion) -> EvidenceVersionResponse:
 
 def _validate_pdf(file: UploadFile, data: bytes) -> None:
     if len(data) > MAX_FILE_SIZE:
-        raise HTTPException(413, "PDF exceeds the 25 MB limit")
+        raise HTTPException(413, "PDF exceeds the 10 MB limit")
     if (file.content_type != "application/pdf" or not file.filename or
             len(file.filename) > 255 or not file.filename.lower().endswith(".pdf")):
         raise HTTPException(400, "Only PDF files are accepted")

@@ -11,6 +11,8 @@ const routes = {
   "Secure Submission": "/submission", "Audit Trail": "/audit", "Access Control": "/access-control",
 };
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 function CaseDetail() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -217,6 +219,7 @@ function CaseDetail() {
 
   const replace = (item, file) => run(async () => {
     if (!file) return;
+    if (file.size > MAX_FILE_SIZE) throw new Error("The selected file exceeds the 10 MB limit.");
     const form = new FormData(); form.append("file", file);
     const version = await api(`/evidence/${item.id}/versions`, { method: "POST", body: form });
     setVersions((current) => ({ ...current, [item.id]: version }));
