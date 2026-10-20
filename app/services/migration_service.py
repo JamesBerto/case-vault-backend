@@ -1,5 +1,6 @@
 """Explicit, idempotent migration. Run with application writes stopped."""
 import asyncio
+import argparse
 
 from pymongo import ASCENDING
 
@@ -99,13 +100,33 @@ async def run_migration() -> None:
     if not expiry_indexes:
         await db["active_sessions"].create_index(
             [("expires_at", ASCENDING)], expireAfterSeconds=0, name="active_session_expiry")
-    print("Migration complete: permissions, version counters, and unique indexes verified")
+    await migrate_totp_challenges(db)
+    print("Migration complete: permissions, version counters, and unique/expiry indexes verified")
 
 
-async def main() -> None:
+async def migrate_totp_challenges(db) -> None:
+    """Add only TOTP expiry cleanup; leave users, roles, and evidence unchanged."""
+    challenge_indexes = (await db["totp_challenges"].list_indexes().to_list(None)
+                         if "totp_challenges" in await db.list_collection_names() else [])
+    challenge_expiry = [index for index in challenge_indexes
+                        if list(index["key"].items()) == [("expires_at", ASCENDING)]]
+    if challenge_expiry and not any(index.get("expireAfterSeconds") == 0 for index in challenge_expiry):
+        raise RuntimeError("A non-TTL totp_challenges.expires_at index exists. Review it manually before migration.")
+    if not challenge_expiry:
+        await db["totp_challenges"].create_index(
+            [("expires_at", ASCENDING)], expireAfterSeconds=0, name="totp_challenge_expiry")
+
+
+async def main(totp_only: bool = False) -> None:
     await init_db(require_migration=False)
-    await run_migration()
+    if totp_only:
+        await migrate_totp_challenges(get_client()[settings.DB_NAME])
+        print("TOTP challenge expiry index verified; no account or permission records changed")
+    else:
+        await run_migration()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--totp-only", action="store_true", help="Create only the TOTP challenge expiry index")
+    asyncio.run(main(parser.parse_args().totp_only))

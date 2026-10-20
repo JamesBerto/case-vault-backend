@@ -5,6 +5,7 @@ import VaultLayout from "../layouts/VaultLayout";
 import { useAuth } from "../auth/context";
 import { api, philippineDate, streamAudit } from "../lib/api";
 import { displayRoleName } from "../lib/roles";
+import TotpSetup from "../components/TotpSetup";
 import "./AccessControl.css";
 
 const routes = {
@@ -55,7 +56,11 @@ function integrityStatus(entry) {
 
 function AccessControl({ asOverview = false }) {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const [totpSetup, setTotpSetup] = useState(null);
+  const [totpCode, setTotpCode] = useState("");
+  const totpRequestInFlight = useRef(false);
+  const [confirmTotpReset, setConfirmTotpReset] = useState(false);
   const canManageUsers = user.permissions.includes("user:manage");
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -222,6 +227,10 @@ function AccessControl({ asOverview = false }) {
       setCreateError("Complete every field. Full name must contain at least two characters.");
       return;
     }
+    if (!/^[^@\s]+@casevault\.org$/i.test(email)) {
+      setCreateError("Email must use the @casevault.org domain.");
+      return;
+    }
     setCreateError("");
     setBusy(true);
     try {
@@ -243,7 +252,50 @@ function AccessControl({ asOverview = false }) {
     setSelected(updated); setMessage("Account updated.");
   });
 
-  const closeDetails = () => { if (!busy) setSelected(null); };
+  const closeDetails = () => {
+    if (busy) return;
+    setSelected(null); setTotpSetup(null); setTotpCode(""); setConfirmTotpReset(false);
+  };
+
+  const updateTotpAccount = async (updated, notice) => {
+    setUsers((current) => current.map((person) => person.id === updated.id ? updated : person));
+    setSelected(updated); setTotpSetup(null); setTotpCode(""); setConfirmTotpReset(false);
+    setMessage(notice);
+    if (updated.id === user.id) { await logout(); navigate("/login", { replace: true }); }
+  };
+
+  const startTotpSetup = () => run(async () => {
+    const setup = await api(`/users/${selected.id}/totp/setup`, { method: "POST" });
+    setTotpSetup(setup); setTotpCode(""); setConfirmTotpReset(false);
+    setSelected((current) => ({ ...current, totp_pending: true }));
+  });
+
+  const confirmTotpSetup = async (event) => {
+    event.preventDefault();
+    if (busy || totpRequestInFlight.current) return;
+    setError("");
+    const submittedCode = new FormData(event.currentTarget).get("totp_code");
+    if (!/^[0-9]{6}$/.test(submittedCode ?? "")) {
+      setError("Enter the current six-digit code.");
+      return;
+    }
+    totpRequestInFlight.current = true;
+    try {
+      await run(async () => {
+        const updated = await api(`/users/${selected.id}/totp/confirm`, {
+          method: "POST", body: { challenge: totpSetup.challenge, code: submittedCode },
+        });
+        await updateTotpAccount(updated, "Two-factor authentication enabled. This user must sign in again.");
+      });
+    } finally {
+      totpRequestInFlight.current = false;
+    }
+  };
+
+  const resetTotp = () => run(async () => {
+    const updated = await api(`/users/${selected.id}/totp/reset`, { method: "POST" });
+    await updateTotpAccount(updated, "Authenticator reset. This user has been signed out.");
+  });
 
   return <VaultLayout activeTab={asOverview ? "Overview" : "Access Control"} onTabChange={(tab) => navigate(routes[tab])}>
     <div className="access-page">
@@ -368,8 +420,9 @@ function AccessControl({ asOverview = false }) {
             </div>
             <div className="access-create-field">
               <label htmlFor="create-user-email">Email address</label>
-              <input id="create-user-email" type="email" placeholder="name@example.com" value={newUser.email} required
+              <input id="create-user-email" type="email" placeholder="name@casevault.org" value={newUser.email} required
                 autoComplete="email" onChange={(event) => setNewUser({ ...newUser, email: event.target.value })} />
+              <small>Only @casevault.org email addresses are accepted.</small>
             </div>
             <div className="access-create-field">
               <label htmlFor="create-user-password">Temporary password</label>
@@ -414,7 +467,42 @@ function AccessControl({ asOverview = false }) {
             <div><span>DATE REGISTERED</span><strong>{registeredDate(selected.created_at)}</strong></div>
             <div><span>ACCOUNT STATUS</span><strong>{selected.is_active ? "Enabled" : "Deactivated"}</strong></div>
             <div><span>SESSION STATUS</span><strong>{accountStatus(selected, onlineUserIds, presenceAvailable)}</strong></div>
+            <div><span>TWO-FACTOR AUTHENTICATION</span><strong className="access-totp-status">
+              <span className={`access-modal-status ${selected.totp_enabled ? "access-modal-status-active" : "access-totp-status-disabled"}`}>{selected.totp_enabled ? "Enabled" : "Not enabled"}</span>
+              {selected.totp_pending && <span className="access-modal-status access-totp-status-pending">Setup pending</span>}
+            </strong></div>
           </div>
+          {user.role_name === "admin" && <section className="access-totp-controls" aria-label="Authenticator management">
+            <div className="access-totp-heading"><span className="access-modal-eyebrow">ACCOUNT SECURITY</span><h3>Two-factor authentication</h3></div>
+            <p>A test code is required to enable or replace the authenticator. Use administrator reset if the device is lost.</p>
+            <div className="access-totp-actions">
+              <button className="access-modal-secondary" type="button" disabled={busy || !selected.is_active} onClick={startTotpSetup}><ShieldCheck size={14} aria-hidden="true" />{selected.totp_enabled ? "Replace authenticator" : "Set up 2FA"}</button>
+              {(selected.totp_enabled || selected.totp_pending) && <button className="access-modal-secondary access-totp-reset-trigger" type="button" disabled={busy || !selected.is_active}
+                onClick={() => setConfirmTotpReset(true)}><LockKeyhole size={14} aria-hidden="true" />Disable / reset 2FA</button>}
+            </div>
+            {confirmTotpReset && <div className="access-totp-reset" role="group" aria-labelledby="access-totp-reset-title">
+              <div className="access-totp-reset-heading"><AlertTriangle size={16} aria-hidden="true" /><strong id="access-totp-reset-title">Reset authenticator?</strong></div>
+              <p>Reset this authenticator and sign this account out? Administrators must enroll again before accessing the app.</p>
+              <div className="access-modal-footer">
+                <button className="access-modal-secondary" type="button" disabled={busy} onClick={() => setConfirmTotpReset(false)}>Cancel</button>
+                <button className="access-modal-primary" type="button" disabled={busy} onClick={resetTotp}>Confirm reset</button>
+              </div>
+            </div>}
+            {totpSetup && <form className="access-totp-form" onSubmit={confirmTotpSetup} aria-busy={busy}>
+              <TotpSetup key={totpSetup.challenge} setup={totpSetup} disabled={busy} />
+              <div className="access-create-field access-totp-code-field">
+                <label htmlFor="admin-totp-code">Authenticator code</label>
+                <input id="admin-totp-code" name="totp_code" value={totpCode} onChange={(event) => setTotpCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                  inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required readOnly={busy}
+                  aria-describedby="admin-totp-code-help" />
+                <small id="admin-totp-code-help">Enter the current code from this user's authenticator app.</small>
+              </div>
+              <div className="access-modal-footer access-totp-confirm-actions">
+                <button className="access-totp-submit" type="submit" disabled={busy}><ShieldCheck size={14} aria-hidden="true" />{busy ? "Confirming…" : "Confirm and enable 2FA"}</button>
+              </div>
+            </form>}
+            <div className="access-modal-notice"><LockKeyhole size={15} aria-hidden="true" /><span>Enabling or resetting 2FA signs this account out.</span></div>
+          </section>}
           <div className="access-modal-notice"><LockKeyhole size={15} /><span>Passwords and password hashes are never displayed.</span></div>
           {error && <div className="access-modal-error" role="alert">{error}</div>}
           <div className="access-modal-footer">

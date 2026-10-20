@@ -27,6 +27,9 @@ async def get_current_user(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "User no longer exists")
     if not user.is_active or user.deleted_at is not None:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "This account has been deactivated")
+    role = await Role.get(user.role_id)
+    if role is not None and role.name == "admin" and not user.totp_enabled:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Administrator authenticator setup required; sign in again")
     if not await is_active_session(str(user.id), credentials.credentials):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session has ended")
     return user

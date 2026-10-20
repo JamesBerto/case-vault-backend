@@ -2,7 +2,7 @@
 import asyncio
 import io
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import httpx
@@ -10,6 +10,8 @@ import pytest
 from bson import ObjectId
 from pypdf import PdfWriter
 from motor.motor_asyncio import AsyncIOMotorClient
+from cryptography.fernet import Fernet
+import pyotp
 
 from app.core.config import settings
 from app.core import database as database_module
@@ -44,6 +46,7 @@ def expect(response, status):
 
 
 async def exercise_database(monkeypatch):
+    monkeypatch.setattr(settings, "TOTP_ENCRYPTION_KEY", Fernet.generate_key().decode())
     test_uri = os.environ["TEST_MONGO_URI"]
     test_db = f"cv_test_{uuid4().hex[:24]}"
     assert test_db != settings.DB_NAME
@@ -62,13 +65,19 @@ async def exercise_database(monkeypatch):
         db = client[test_db]
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as api:
-            login = expect(await api.post("/auth/login", json={
-                "email": "admin@casevault.org", "password": "ChangeMe123!"}), 200)
+            enrollment = expect(await api.post("/auth/login", json={
+                "email": "admin@casevault.org", "password": "ChangeMe123!"}), 202)
+            assert enrollment["status"] == "totp_setup_required" and "access_token" not in enrollment
+            assert await db.active_sessions.count_documents({}) == 0
+            login = expect(await api.post("/auth/totp/verify", json={
+                "challenge": enrollment["challenge"],
+                "code": pyotp.TOTP(enrollment["setup"]["secret"]).now()}), 200)
             admin_token = login["access_token"]
             admin = auth(admin_token)
-            second_admin_login = expect(await api.post("/auth/login", json={
-                "email": "admin@casevault.org", "password": "ChangeMe123!"}), 409)
-            assert "already signed in" in second_admin_login["detail"]
+            second_admin_login = await api.post("/auth/login", json={
+                "email": "admin@casevault.org", "password": "ChangeMe123!"})
+            assert "already signed in" in expect(second_admin_login, 409)["detail"]
+            assert 1 <= int(second_admin_login.headers["Retry-After"]) <= 180
             access = expect(await api.get("/users/me/access", headers=admin), 200)
             assert access["role_name"] == "admin" and "user:manage" in access["permissions"]
             roles = expect(await api.get("/roles", headers=admin), 200)
@@ -91,7 +100,7 @@ async def exercise_database(monkeypatch):
                                                  RolePermission.permission_id == str(create_permission.id)) is None
             async def create_user(name, role):
                 data = expect(await api.post("/users", headers=admin, json={
-                    "name": name, "email": f"{name}@example.org", "password": "TestPass123!",
+                    "name": name, "email": f"{name}@casevault.org", "password": "TestPass123!",
                     "role_id": role_ids[role]}), 201)
                 token = expect(await api.post("/auth/login", json={
                     "email": data["email"], "password": "TestPass123!"}), 200)["access_token"]
@@ -101,6 +110,7 @@ async def exercise_database(monkeypatch):
             reviewer_user, reviewer = await create_user("reviewer", "reviewer")
             analyst_access = expect(await api.get("/users/me/access", headers=analyst), 200)
             reviewer_access = expect(await api.get("/users/me/access", headers=reviewer), 200)
+            expect(await api.get("/cases/next-number", headers=reviewer), 403)
             assert "tag:create" in analyst_access["permissions"] and "tag:assign" in analyst_access["permissions"]
             assert "tag:assign" in reviewer_access["permissions"] and "tag:create" not in reviewer_access["permissions"]
             case_a = expect(await api.post("/cases", headers=analyst, json={
@@ -234,7 +244,7 @@ async def exercise_database(monkeypatch):
             status_path = f"/evidence/{evidence_id}/versions/{version_id}/verification-status"
             initial_status = expect(await api.get(status_path, headers=reviewer), 200)
             assert initial_status["status"] == "Not checked" and initial_status["checked_at"] is None
-            expect(await api.get(status_path), 403)
+            expect(await api.get(status_path), 401)
             original_download = await api.get(f"/evidence/{evidence_id}/versions/{version_id}/download",
                                               headers=reviewer)
             assert original_download.status_code == 200 and original_download.content == file
@@ -357,7 +367,8 @@ async def exercise_database(monkeypatch):
             expect(await api.get("/users/me/access", headers=analyst), 401)
             resumed_analyst = expect(await api.post("/auth/login", json={
                 "email": analyst_user["email"], "password": "NewTestPass123!"}), 200)
-            assert expect(await api.get("/users/me", headers=auth(resumed_analyst["access_token"])), 200)["id"] == analyst_user["id"]
+            resumed_analyst_headers = auth(resumed_analyst["access_token"])
+            assert expect(await api.get("/users/me", headers=resumed_analyst_headers), 200)["id"] == analyst_user["id"]
 
             paused_user, paused_token = await create_user("paused", "analyst")
             expect(await api.delete(f"/users/{paused_user['id']}", headers=admin), 405)
@@ -374,7 +385,7 @@ async def exercise_database(monkeypatch):
                 "email": paused_user["email"], "password": "TestPass123!"}), 200)
 
             race_user = expect(await api.post("/users", headers=admin, json={
-                "name": "Race User", "email": "race@example.org", "password": "TestPass123!",
+                "name": "Race User", "email": "race@casevault.org", "password": "TestPass123!",
                 "role_id": role_ids["analyst"]}), 201)
             race_credentials = {"email": race_user["email"], "password": "TestPass123!"}
             race_results = await asyncio.gather(
@@ -390,7 +401,9 @@ async def exercise_database(monkeypatch):
             expect(await api.post("/auth/heartbeat", headers=auth(first_token)), 204)
             renewed = await db.active_sessions.find_one({"_id": race_user["id"]})
             assert renewed["last_seen_at"] > datetime.utcnow() - timedelta(seconds=30)
-            expect(await api.post("/auth/login", json=race_credentials), 409)
+            retry_response = await api.post("/auth/login", json=race_credentials)
+            expect(retry_response, 409)
+            assert 1 <= int(retry_response.headers["Retry-After"]) <= 180
 
             await db.active_sessions.update_one({"_id": race_user["id"]},
                                                 {"$set": {"last_seen_at": datetime.utcnow() - SESSION_LEASE - timedelta(seconds=1)}})
@@ -411,6 +424,20 @@ async def exercise_database(monkeypatch):
                                                  "$set": {"started_at": datetime.utcnow() - SESSION_LEASE - timedelta(seconds=1)}})
             expect(await api.get("/users/me", headers=auth(legacy_token)), 401)
             expect(await api.post("/auth/login", json=race_credentials), 200)
+
+            # Auto-numbering runs only in this isolated database. Explicit legacy numbers remain valid.
+            day_prefix = datetime.now(timezone(timedelta(hours=8))).strftime("%Y%m%d")
+            preview = expect(await api.get("/cases/next-number", headers=resumed_analyst_headers), 200)
+            assert preview["case_number"] == f"{day_prefix}-001"
+            generated = await asyncio.gather(
+                api.post("/cases", headers=resumed_analyst_headers, json={"case_type": "Digital"}),
+                api.post("/cases", headers=resumed_analyst_headers, json={"case_type": "Digital"}))
+            created = [expect(result, 201) for result in generated]
+            assert {item["case_number"] for item in created} == {
+                f"{day_prefix}-001", f"{day_prefix}-002"}
+            assert len({item["id"] for item in created}) == 2
+            expect(await api.delete(f"/cases/{created[0]['id']}", headers=admin), 204)
+            assert expect(await api.get("/cases/next-number", headers=resumed_analyst_headers), 200)["case_number"] == f"{day_prefix}-003"
     finally:
         cleanup_client = client or database_module._client
         try:

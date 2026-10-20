@@ -4,6 +4,7 @@ class Settings(BaseSettings):
     MONGO_URI: str
     DB_NAME: str
     JWT_SECRET: str
+    TOTP_ENCRYPTION_KEY: str = ""
     CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     class Config:

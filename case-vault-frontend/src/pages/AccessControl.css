@@ -1370,3 +1370,76 @@
   .admin-create-modal { padding: 20px; }
   .admin-activity-details { grid-template-columns: minmax(0, 1fr); padding-left: 18px; }
 }
+.access-totp-status { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+.access-totp-status .access-modal-status { font-size: 10px; }
+.access-totp-status-disabled { color: var(--vault-muted, #78695d); }
+.access-totp-status-pending { color: #9a712d; }
+.access-totp-controls {
+  min-width: 0;
+  margin: 20px 0 16px;
+  padding-top: 18px;
+  border-top: 1px solid #e9dfd3;
+  color: var(--vault-muted, #78695d);
+  font-size: 12px;
+}
+.access-totp-heading h3 {
+  margin: 5px 0 10px;
+  color: var(--vault-text, #30251f);
+  font-family: "Newsreader", Georgia, serif;
+  font-size: 20px;
+  font-weight: 500;
+}
+.access-totp-controls > p { margin: 0 0 14px; line-height: 1.6; }
+.access-totp-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.access-totp-actions > button,
+.access-totp-controls .access-modal-footer > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 8px 12px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.access-totp-actions svg,
+.access-totp-confirm-actions svg { flex: none; }
+.access-totp-reset-trigger { color: var(--vault-accent, #8c332c); }
+.access-totp-controls button:disabled { opacity: .6; cursor: not-allowed; }
+.access-totp-controls button:focus-visible {
+  outline: 2px solid var(--vault-accent, #8c332c);
+  outline-offset: 2px;
+}
+.access-totp-form { display: grid; min-width: 0; gap: 18px; margin-top: 18px; }
+.access-totp-code-field input { font-family: "JetBrains Mono", monospace; font-size: 16px; letter-spacing: .2em; }
+.access-totp-code-field small { color: var(--vault-muted, #78695d); font-size: 11px; line-height: 1.5; }
+.access-totp-controls .access-totp-confirm-actions {
+  margin-top: 0;
+  padding-top: 16px;
+  border-top: 1px solid #e8ded2;
+}
+.access-totp-submit {
+  border: 1px solid #3c2b25;
+  border-radius: 4px;
+  background: #3c2b25;
+  color: #fffdfa;
+  font-weight: 600;
+}
+.access-totp-submit:hover:not(:disabled) { background: #5b4034; }
+.access-totp-reset {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid #e4d4b5;
+  border-radius: 4px;
+  background: #faf2e2;
+  color: #8b7046;
+}
+.access-totp-reset-heading { display: flex; align-items: center; gap: 8px; color: #785d35; font-size: 12px; }
+.access-totp-reset-heading svg { flex: none; }
+.access-totp-reset p { margin: 10px 0 0; font-size: 11px; line-height: 1.6; }
+.access-totp-reset .access-modal-primary:hover:not(:disabled) { background: #77342e; border-color: #77342e; }
+
+@media (max-width: 650px) {
+  .access-totp-actions > button,
+  .access-totp-controls .access-modal-footer > button { flex: 1 1 100%; }
+}

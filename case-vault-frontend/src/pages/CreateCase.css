@@ -75,6 +75,8 @@
   font-size: 12px;
 }
 .create-case-form input:focus { outline: 2px solid #a78364; outline-offset: 1px; }
+.create-case-form input[readonly] { background: #f4f0e9; color: #6c564a; }
+.create-case-form label small { color: #78695d; font-size: 11px; line-height: 1.5; }
 .create-case-error {
   padding: 12px;
   border: 1px solid #d5a39d;
@@ -82,6 +84,7 @@
   color: #8c332c;
   font-size: 12px;
 }
+.create-case-error button { margin-left: 8px; border: 0; background: transparent; color: #8c332c; text-decoration: underline; cursor: pointer; }
 .create-case-actions {
   display: flex;
   justify-content: flex-end;

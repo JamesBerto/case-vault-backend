@@ -1,0 +1,611 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<<
+/Producer (pypdf)
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Count 7
+/Kids [ 4 0 R 9 0 R 11 0 R 13 0 R 15 0 R 19 0 R 21 0 R ]
+>>
+endobj
+3 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+/Outlines 23 0 R
+>>
+endobj
+4 0 obj
+<<
+/Type /Page
+/MediaBox [ 0 0 595 842 ]
+/Resources <<
+/Font <<
+/F1 5 0 R
+/F2 6 0 R
+/F3 7 0 R
+>>
+>>
+/Contents 8 0 R
+/Parent 2 0 R
+>>
+endobj
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+6 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica-Bold
+>>
+endobj
+7 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Courier
+>>
+endobj
+8 0 obj
+<<
+/Length 4215
+>>
+stream
+BT /F2 9 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 792 Tm (CASE VAULT / OPERATOR GUIDE) Tj ET
+BT /F2 23 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 760 Tm (Quick Start) Tj ET
+0.55 0.15 0.13 RG 0.8 w 43 746 m 552 746 l S
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 725 Tm (Run Case Vault on one Windows computer and open its printed link on other devices in the allowed Wi-Fi) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 711 Tm (subnet. MongoDB Atlas remains the database and needs internet access.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 684 Tm (1. First-time setup) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 666 Tm (Install Python 3.12 and Node.js. In PowerShell, run the commands below. Check that the project's .env) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 652 Tm (contains working Atlas settings; never share the file.) Tj ET
+0.965 0.951 0.935 rg 43 536 509 101 re f
+0.55 0.15 0.13 RG 2 w 43 536 m 43 637 l S
+BT /F3 8.7 Tf 0.13 0.13 0.13 rg 1 0 0 1 55 623 Tm (cd "C:\\Users\\James Berto\\Downloads\\case-vault_backend") Tj ET
+BT /F3 8.7 Tf 0.13 0.13 0.13 rg 1 0 0 1 55 608 Tm (python -m venv venv) Tj ET
+BT /F3 8.7 Tf 0.13 0.13 0.13 rg 1 0 0 1 55 593 Tm (.\\venv\\Scripts\\python.exe -m pip install -r requirements.txt) Tj ET
+BT /F3 8.7 Tf 0.13 0.13 0.13 rg 1 0 0 1 55 578 Tm (cd .\\case-vault-frontend) Tj ET
+BT /F3 8.7 Tf 0.13 0.13 0.13 rg 1 0 0 1 55 563 Tm (npm.cmd ci) Tj ET
+BT /F3 8.7 Tf 0.13 0.13 0.13 rg 1 0 0 1 55 548 Tm (cd ..) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 530 Tm (If venv and node_modules already work, skip the install commands.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 503 Tm (2. Start the system each time) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 485 Tm (Connect) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 485 Tm (Connect the host computer and client devices to the intended Wi-Fi. Keep the host on and) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 471 Tm (online.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 453 Tm (Run) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 453 Tm (Open PowerShell in the project folder and enter the LAN launcher command:) Tj ET
+0.965 0.951 0.935 rg 43 412 509 26 re f
+0.55 0.15 0.13 RG 2 w 43 412 m 43 438 l S
+BT /F3 8.7 Tf 0.13 0.13 0.13 rg 1 0 0 1 55 424 Tm (.\\scripts\\Start-CaseVaultLAN.ps1) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 406 Tm (Open) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 406 Tm (Wait for 'Application startup complete'. Copy the printed Case Vault LAN address into each) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 392 Tm (client browser. The address can change after reconnecting to Wi-Fi.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 374 Tm (Stop) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 374 Tm (Keep the hosting PowerShell window open. Press Ctrl+C there to stop the server.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 347 Tm (3. Common startup problems) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 329 Tm (Script blocked) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 329 Tm (Run Set-ExecutionPolicy -Scope Process RemoteSigned in that PowerShell window, then retry.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 311 Tm (Wi-Fi IP error) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 311 Tm (Run ipconfig and pass your current address and prefix, for example -LanIp 172.20.10.6) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 297 Tm (-PrefixLength 28 for mask 255.255.255.240.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 279 Tm (Server error) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 279 Tm (Read the earlier error lines. Port 8000 may already be used by another running Case Vault) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 265 Tm (server.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 247 Tm (No client access) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 247 Tm (Check the printed IP, Windows Firewall, and Wi-Fi client isolation. See LAN.md for) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 233 Tm (firewall details.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 65 m 552 65 l S
+BT /F1 8 Tf 0.39 0.36 0.34 rg 1 0 0 1 43 50 Tm (Case Vault | Quick Start and Features | Page 1 of 7) Tj ET
+endstream
+endobj
+9 0 obj
+<<
+/Type /Page
+/MediaBox [ 0 0 595 842 ]
+/Resources <<
+/Font <<
+/F1 5 0 R
+/F2 6 0 R
+/F3 7 0 R
+>>
+>>
+/Contents 10 0 R
+/Parent 2 0 R
+>>
+endobj
+10 0 obj
+<<
+/Length 4288
+>>
+stream
+BT /F2 9 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 792 Tm (CASE VAULT / OPERATOR GUIDE) Tj ET
+BT /F2 23 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 760 Tm (Navigation and Permissions) Tj ET
+0.55 0.15 0.13 RG 0.8 w 43 746 m 552 746 l S
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 725 Tm (Sign in with your assigned account. The Case Vault logo opens the overview. Tabs vary by role; the key) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 711 Tm (icon opens your own password settings, and Log Out ends your session.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 684 Tm (Where to go) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 666 Tm (Case Library) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 666 Tm (Browse active cases, see counts, search by case number, type, creator, or tag, filter by) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 652 Tm (status, and open a case. New Case appears if you can create cases.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 634 Tm (Case Detail) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 634 Tm (Read case information, evidence, hashes, integrity results, version history, and assigned) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 620 Tm (tags. Actions shown depend on your permissions.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 602 Tm (Secure Submission) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 602 Tm (Upload a new PDF evidence record into an existing case. Create the case first if none is) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 588 Tm (available.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 570 Tm (Status) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 570 Tm (See your account and assigned permissions. Administrators see their dashboard on the Case) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 556 Tm (Vault overview page.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 538 Tm (Admin dashboard) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 538 Tm (Review the permission matrix, account list, online status, latest integrity attempt, and) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 524 Tm (live activity ledger.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 497 Tm (Built-in role guide) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 479 Tm (Administrator) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 479 Tm (Can create and view cases, upload/view evidence, change case status, manage tags and) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 465 Tm (accounts, see audit activity, and archive cases or evidence.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 447 Tm (Analyst) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 447 Tm (Can create/view cases, upload/view evidence, create/assign/remove tags, and) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 433 Tm (verify/download evidence. Cannot change case status or archive records.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 415 Tm (Reviewer) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 415 Tm (Can view cases and evidence, change case status, assign/remove existing tags, and) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 401 Tm (verify/download evidence. Cannot create cases, upload files, or archive records.) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 383 Tm (Everyone can change their own password. Backend permissions control access even if a button is hidden or) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 369 Tm (someone edits a URL. Custom roles depend on their database grants; the dashboard shows the current) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 355 Tm (matrix.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 328 Tm (Sessions) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 310 Tm (Each account has one active login. If it is open elsewhere, the login page shows an estimated countdown) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 296 Tm (until the three-minute lease expires. Activity on the first device renews the lease; signing out there) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 282 Tm (frees it sooner. The timer never signs in automatically. Log out when finished.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 65 m 552 65 l S
+BT /F1 8 Tf 0.39 0.36 0.34 rg 1 0 0 1 43 50 Tm (Case Vault | Quick Start and Features | Page 2 of 7) Tj ET
+endstream
+endobj
+11 0 obj
+<<
+/Type /Page
+/MediaBox [ 0 0 595 842 ]
+/Resources <<
+/Font <<
+/F1 5 0 R
+/F2 6 0 R
+/F3 7 0 R
+>>
+>>
+/Contents 24 0 R
+/Parent 2 0 R
+>>
+endobj
+12 0 obj
+<<
+/Length 4456
+>>
+stream
+BT /F2 9 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 792 Tm (CASE VAULT / OPERATOR GUIDE) Tj ET
+BT /F2 23 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 760 Tm (Cases, Evidence, and Tags) Tj ET
+0.55 0.15 0.13 RG 0.8 w 43 746 m 552 746 l S
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 716 Tm (Create and find a case) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 698 Tm (In Case Library, select New Case. Enter a unique case number and a case type, then create it. Case) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 684 Tm (creation and evidence upload are separate steps. Open the new case to review its details. The library) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 670 Tm (excludes soft-deleted cases.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 643 Tm (Submit evidence) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 625 Tm (Open Secure Submission or select Add Evidence from a case detail page. Choose an existing Associated) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 611 Tm (Case, enter an evidence title and classification, then choose a PDF. Source device, description, and) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 597 Tm (notes are optional. Select Upload Evidence and wait for confirmation.) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 579 Tm (The backend parses the PDF content and rejects malformed files; changing a filename to .pdf is) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 565 Tm (insufficient. The maximum is 10 MiB. Upload stores the bytes, a SHA-256 baseline hash, a version record,) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 551 Tm (and an audit event. It does not mean a later integrity check has happened.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 524 Tm (Evidence versions and integrity) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 506 Tm (Download) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 506 Tm (Case Detail offers the current file and older versions through Version history.) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 492 Tm (Replacement PDF uploads create a new version and preserve older files and hashes.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 474 Tm (Verify) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 474 Tm (Select Verify on the current or an older version. The backend reads the stored file and) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 460 Tm (compares its SHA-256 with that version's upload baseline. This check runs only when) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 446 Tm (requested.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 428 Tm (Not checked) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 428 Tm (A baseline exists, but no completed comparison is recorded for that version.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 410 Tm (Intact) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 410 Tm (The stored bytes matched the baseline at the displayed check time.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 392 Tm (Mismatch detected) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 392 Tm (The stored bytes differed. The version is tamper flagged; the prior flag is not) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 378 Tm (automatically cleared.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 360 Tm (Check failed) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 360 Tm (The file could not be read or the comparison could not finish; this is an error, not proof) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 346 Tm (of tampering.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 319 Tm (Case status and tags) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 301 Tm (Reviewers and administrators can set a case to open, under review, or closed. These workflow values are) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 287 Tm (separate from evidence integrity results.) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 269 Tm (Administrators and analysts can create reusable tag names. All built-in roles can view, assign, and) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 255 Tm (remove tags on active cases. Removing an assignment keeps the tag available for other cases.) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 241 Tm (Administrators can delete a tag globally, which removes it from all case associations.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 65 m 552 65 l S
+BT /F1 8 Tf 0.39 0.36 0.34 rg 1 0 0 1 43 50 Tm (Case Vault | Quick Start and Features | Page 3 of 7) Tj ET
+endstream
+endobj
+13 0 obj
+<<
+/Type /Page
+/MediaBox [ 0 0 595 842 ]
+/Resources <<
+/Font <<
+/F1 5 0 R
+/F2 6 0 R
+/F3 7 0 R
+>>
+>>
+/Contents 14 0 R
+/Parent 2 0 R
+>>
+endobj
+14 0 obj
+<<
+/Length 4325
+>>
+stream
+BT /F2 9 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 792 Tm (CASE VAULT / OPERATOR GUIDE) Tj ET
+BT /F2 23 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 760 Tm (Administration and Activity) Tj ET
+0.55 0.15 0.13 RG 0.8 w 43 746 m 552 746 l S
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 716 Tm (Manage accounts) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 698 Tm (On the administrator overview, Add User creates an account with name, email, temporary password, and) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 684 Tm (role. New emails must end in exactly @casevault.org. Select the eye icon on a user row to inspect or) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 670 Tm (change that account's role or active state. Deactivation prevents sign-in; reactivation permits it) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 656 Tm (again. There is no account-delete action.) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 638 Tm (All users can select the key icon to change their own password. The current password and a new 8-128) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 624 Tm (character password are required. Common new passwords are rejected. Administrators may set a common) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 610 Tm (temporary password during account creation; the user should replace it promptly.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 583 Tm (Activity ledger) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 565 Tm (The admin dashboard shows recent recorded actions and receives live activity updates while connected.) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 551 Tm (View All reveals search and filters. Entries identify the actor, action, time, and related case or) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 537 Tm (evidence when recorded. Passwords, tokens, and PDF contents are not displayed in the ledger.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 510 Tm (Archive \(soft delete\)) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 492 Tm (Administrators can archive a case or evidence from Case Detail. Normal lists and evidence operations) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 478 Tm (then hide the archived record. Metadata and stored files remain retained; admin-only API endpoints can) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 464 Tm (inspect deleted metadata. Archiving is recorded in the ledger. It is not a permanent file purge.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 437 Tm (Errors and good habits) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 419 Tm (403) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 419 Tm (Your role is not allowed to perform that action. Ask an administrator to review the) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 405 Tm (permission matrix.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 387 Tm (404) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 387 Tm (The item may be missing or archived; normal pages do not expose soft-deleted records.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 369 Tm (409) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 369 Tm (A case number, tag, or assignment may already exist, or that account is signed in) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 355 Tm (elsewhere.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 337 Tm (400 / 413) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 337 Tm (The PDF content or file type is invalid, or the file exceeds the 10 MiB limit.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 319 Tm (422) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 319 Tm (Check required fields, text lengths, and @casevault.org email for new accounts.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 301 Tm (Connection) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 301 Tm (Confirm the LAN server still runs, the host is online, and MongoDB Atlas is reachable.) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 283 Tm (For complete setup and firewall instructions, read LAN.md. For technical API and migration details, read) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 269 Tm (BACKEND.md. This guide describes the current interface and built-in roles.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 65 m 552 65 l S
+BT /F1 8 Tf 0.39 0.36 0.34 rg 1 0 0 1 43 50 Tm (Case Vault | Quick Start and Features | Page 4 of 7) Tj ET
+endstream
+endobj
+15 0 obj
+<<
+/Type /Page
+/MediaBox [ 0 0 595 842 ]
+/Resources <<
+/Font <<
+/F1 16 0 R
+/F2 17 0 R
+>>
+>>
+/Contents 18 0 R
+/Parent 2 0 R
+>>
+endobj
+16 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+17 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica-Bold
+>>
+endobj
+18 0 obj
+<<
+/Length 4235
+>>
+stream
+BT /F2 9 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 792 Tm (CASE VAULT / OPERATOR GUIDE) Tj ET
+BT /F2 22 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 759 Tm (Development Tools: Backend) Tj ET
+0.55 0.15 0.13 RG 0.8 w 43 746 m 552 746 l S
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 724 Tm (What each server-side tool does, why it is used, and how it fits into a request.) Tj ET
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 698 Tm (Python 3.12) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 683 Tm (Purpose: Language of the backend and maintenance scripts.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 671 Tm (How: Runs app code, receives upload bytes, calls MongoDB, and creates API responses.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 663 m 552 663 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 650 Tm (FastAPI) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 635 Tm (Purpose: Framework that defines the backend's HTTP endpoints and permissions.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 623 Tm (How: Maps a path such as /cases to a Python function, validates inputs, and returns JSON or a file.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 615 m 552 615 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 602 Tm (Uvicorn) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 587 Tm (Purpose: Server process that makes FastAPI reachable in a browser.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 575 Tm (How: Listens on a host IP and port, passes each request to the app, and sends back its response.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 567 m 552 567 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 554 Tm (Pydantic + pydantic-settings) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 539 Tm (Purpose: Checks input and output shapes and reads configuration.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 527 Tm (How: Rejects invalid fields before business logic runs; loads MONGO_URI, DB_NAME, and JWT_SECRET from .env.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 519 m 552 519 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 506 Tm (Beanie + Motor + PyMongo) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 491 Tm (Purpose: Document models and async MongoDB access.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 479 Tm (How: Beanie maps Python models to collections; Motor/PyMongo execute queries, indexes, and transactions.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 471 m 552 471 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 458 Tm (MongoDB Atlas) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 443 Tm (Purpose: Hosted database for accounts, cases, versions, sessions, tags, and audit entries.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 431 Tm (How: The server connects over the internet; metadata transactions keep related writes consistent.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 423 m 552 423 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 410 Tm (GridFS) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 395 Tm (Purpose: MongoDB file storage for evidence PDFs.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 383 Tm (How: Stores file bytes in chunks, identified by a file ID kept in each evidence version.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 375 m 552 375 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 362 Tm (pypdf + hashlib SHA-256) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 347 Tm (Purpose: PDF structure check and evidence integrity baseline.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 335 Tm (How: pypdf parses uploaded pages; hashlib hashes the received bytes and rehashes stored bytes on Verify.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 327 m 552 327 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 314 Tm (passlib/bcrypt + python-jose) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 299 Tm (Purpose: Password protection and signed login tokens.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 287 Tm (How: Passwords are checked against stored hashes; a signed JWT identifies the logged-in user.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 279 m 552 279 l S
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 266 Tm (Request path: browser -> Uvicorn/FastAPI -> validation and permissions -> MongoDB/GridFS -> response.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 65 m 552 65 l S
+BT /F1 8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 50 Tm (Case Vault | Quick Start and Features | Page 5 of 7) Tj ET
+endstream
+endobj
+19 0 obj
+<<
+/Type /Page
+/MediaBox [ 0 0 595 842 ]
+/Resources <<
+/Font <<
+/F1 16 0 R
+/F2 17 0 R
+>>
+>>
+/Contents 20 0 R
+/Parent 2 0 R
+>>
+endobj
+20 0 obj
+<<
+/Length 4573
+>>
+stream
+BT /F2 9 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 792 Tm (CASE VAULT / OPERATOR GUIDE) Tj ET
+BT /F2 22 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 759 Tm (Development Tools: Frontend) Tj ET
+0.55 0.15 0.13 RG 0.8 w 43 746 m 552 746 l S
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 724 Tm (Tools that build the interface and help developers run, check, and track changes.) Tj ET
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 698 Tm (Node.js + npm) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 683 Tm (Purpose: Runs JavaScript build tools and manages frontend packages.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 671 Tm (How: npm.cmd ci installs exactly the packages in the lockfile; npm scripts start checks and builds.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 663 m 552 663 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 650 Tm (React) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 635 Tm (Purpose: Renders pages, forms, tables, and live status in the browser.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 623 Tm (How: Components hold page state and redraw when API results or user input changes.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 615 m 552 615 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 602 Tm (React Router) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 587 Tm (Purpose: Controls movement between Case Vault screens.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 575 Tm (How: Routes select the page; permission guards block pages an account cannot use.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 567 m 552 567 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 554 Tm (Vite) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 539 Tm (Purpose: Frontend development server and production build tool.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 527 Tm (How: npm.cmd run dev serves editable code locally; npm.cmd run build creates files for LAN mode.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 519 m 552 519 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 506 Tm (CSS + installed Tailwind tooling) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 491 Tm (Purpose: Styles the interface at different screen sizes.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 479 Tm (How: Page CSS sets colors and layouts; Tailwind is installed in the frontend build configuration.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 471 m 552 471 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 458 Tm (Lucide React) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 443 Tm (Purpose: Reusable icons in buttons, tabs, and status panels.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 431 Tm (How: Components draw vector icons such as the key, folder, and search symbols.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 423 m 552 423 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 410 Tm (PowerShell LAN launcher) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 395 Tm (Purpose: Starts the frontend and backend together for Wi-Fi access.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 383 Tm (How: Builds Vite, detects or accepts the Wi-Fi IP, sets the allowed subnet, then starts Uvicorn.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 375 m 552 375 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 362 Tm (pytest + httpx) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 347 Tm (Purpose: Backend automated checks and test HTTP requests.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 335 Tm (How: pytest runs test cases; httpx sends requests to the API in isolated tests.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 327 m 552 327 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 314 Tm (ESLint) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 299 Tm (Purpose: Frontend source checker.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 287 Tm (How: npm.cmd run lint finds JavaScript/React mistakes before use or deployment.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 279 m 552 279 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 266 Tm (Git) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 251 Tm (Purpose: Source history and branch management.) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 239 Tm (How: Records code changes so developers can review or restore earlier versions; it is not the database.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 231 m 552 231 l S
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 218 Tm (Key files: requirements.txt lists Python packages; package.json lists frontend packages and commands; .env) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 205 Tm (stores private local settings. Do not share .env.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 65 m 552 65 l S
+BT /F1 8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 50 Tm (Case Vault | Quick Start and Features | Page 6 of 7) Tj ET
+endstream
+endobj
+21 0 obj
+<<
+/Type /Page
+/MediaBox [ 0 0 595 842 ]
+/Resources <<
+/Font <<
+/F1 16 0 R
+/F2 17 0 R
+>>
+>>
+/Contents 22 0 R
+/Parent 2 0 R
+>>
+endobj
+22 0 obj
+<<
+/Length 5187
+>>
+stream
+BT /F2 9 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 792 Tm (CASE VAULT / OPERATOR GUIDE) Tj ET
+BT /F2 22 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 759 Tm (HTTP Responses) Tj ET
+0.55 0.15 0.13 RG 0.8 w 43 746 m 552 746 l S
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 724 Tm (The number in an API response tells you whether an action succeeded and why it failed.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 698 Tm (Success: 2xx) Tj ET
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 679 Tm (200) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 679 Tm (OK) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 665 Tm (The request worked and returned data, for example login, case listing, or a downloaded PDF.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 657 m 552 657 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 645 Tm (201) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 645 Tm (Created) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 631 Tm (A new record was saved, for example an account, case, evidence item, version, or tag.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 623 m 552 623 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 611 Tm (204) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 611 Tm (No Content) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 597 Tm (The action worked but returns no body, for example logout, password change, or archive.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 589 m 552 589 l S
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 577 Tm (Request or access problems: 4xx) Tj ET
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 558 Tm (400) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 558 Tm (Bad Request) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 544 Tm (The uploaded file is not a valid PDF, or the current password is wrong.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 536 m 552 536 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 524 Tm (401) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 524 Tm (Unauthorized) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 510 Tm (Credentials are wrong or the login token/session has ended. Sign in again.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 502 m 552 502 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 490 Tm (403) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 490 Tm (Forbidden) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 476 Tm (Your role cannot perform the action, the account is deactivated, or LAN access is denied.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 468 m 552 468 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 456 Tm (404) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 456 Tm (Not Found) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 442 Tm (The case, evidence, version, user, or tag is absent or hidden by soft deletion.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 434 m 552 434 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 422 Tm (405) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 422 Tm (Method Not Allowed) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 408 Tm (The URL exists but the request used the wrong method, such as GET instead of POST.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 400 m 552 400 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 388 Tm (409) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 388 Tm (Conflict) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 374 Tm (A duplicate case/tag/email/assignment exists, or the account is signed in elsewhere.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 366 m 552 366 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 354 Tm (413) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 354 Tm (Content Too Large) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 340 Tm (The uploaded PDF exceeds the 10 MiB evidence-file limit.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 332 m 552 332 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 320 Tm (422) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 320 Tm (Validation Error) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 306 Tm (A required field, length, date range, role, or new-account email domain is invalid.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 298 m 552 298 l S
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 286 Tm (Server or storage problems: 5xx) Tj ET
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 267 Tm (500) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 267 Tm (Internal Server Error) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 253 Tm (The server cannot complete the request, for example a missing permission configuration.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 245 m 552 245 l S
+BT /F2 10 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 233 Tm (503) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 233 Tm (Service Unavailable) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 87 219 Tm (Evidence verification could not read the stored file; no comparison was completed.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 211 m 552 211 l S
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 199 Tm (No HTTP code at all usually means the browser could not reach the server. Check the LAN link, host, Wi-Fi,) Tj ET
+BT /F1 8.8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 186 Tm (firewall, and Atlas connection. The response's detail text gives the specific cause when available.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 65 m 552 65 l S
+BT /F1 8 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 50 Tm (Case Vault | Quick Start and Features | Page 7 of 7) Tj ET
+endstream
+endobj
+23 0 obj
+<<
+>>
+endobj
+24 0 obj
+<<
+/Length 4480
+>>
+stream
+BT /F2 9 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 792 Tm (CASE VAULT / OPERATOR GUIDE) Tj ET
+BT /F2 23 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 760 Tm (Cases, Evidence, and Tags) Tj ET
+0.55 0.15 0.13 RG 0.8 w 43 746 m 552 746 l S
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 716 Tm (Create and find a case) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 698 Tm (In Case Library, select New Case. The number field previews a date-based case number.) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 684 Tm (Enter a case type and create it. The backend assigns the final unique number. Open the case to) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 670 Tm (review details or add evidence. The library excludes soft-deleted cases.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 643 Tm (Submit evidence) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 625 Tm (Open Secure Submission or select Add Evidence from a case detail page. Choose an existing Associated) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 611 Tm (Case, enter an evidence title and classification, then choose a PDF. Source device, description, and) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 597 Tm (notes are optional. Select Upload Evidence and wait for confirmation.) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 579 Tm (The backend parses the PDF content and rejects malformed files; changing a filename to .pdf is) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 565 Tm (insufficient. The maximum is 10 MiB. Upload stores the bytes, a SHA-256 baseline hash, a version record,) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 551 Tm (and an audit event. It does not mean a later integrity check has happened.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 524 Tm (Evidence versions and integrity) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 506 Tm (Download) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 506 Tm (Case Detail offers the current file and older versions through Version history.) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 492 Tm (Replacement PDF uploads create a new version and preserve older files and hashes.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 474 Tm (Verify) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 474 Tm (Select Verify on the current or an older version. The backend reads the stored file and) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 460 Tm (compares its SHA-256 with that version's upload baseline. This check runs only when) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 446 Tm (requested.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 428 Tm (Not checked) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 428 Tm (A baseline exists, but no completed comparison is recorded for that version.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 410 Tm (Intact) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 410 Tm (The stored bytes matched the baseline at the displayed check time.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 392 Tm (Mismatch detected) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 392 Tm (The stored bytes differed. The version is tamper flagged; the prior flag is not) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 378 Tm (automatically cleared.) Tj ET
+BT /F2 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 48 360 Tm (Check failed) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 360 Tm (The file could not be read or the comparison could not finish; this is an error, not proof) Tj ET
+BT /F1 9.3 Tf 0.13 0.13 0.13 rg 1 0 0 1 159 346 Tm (of tampering.) Tj ET
+BT /F2 12 Tf 0.55 0.15 0.13 rg 1 0 0 1 43 319 Tm (Case status and tags) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 301 Tm (Reviewers and administrators can set a case to open, under review, or closed. These workflow values are) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 287 Tm (separate from evidence integrity results.) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 269 Tm (Administrators and analysts can create reusable tag names. All built-in roles can view, assign, and) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 255 Tm (remove tags on active cases. Removing an assignment keeps the tag available for other cases.) Tj ET
+BT /F1 9.5 Tf 0.13 0.13 0.13 rg 1 0 0 1 43 241 Tm (Administrators can delete a tag globally, which removes it from all case associations.) Tj ET
+0.80 0.77 0.73 RG 0.8 w 43 65 m 552 65 l S
+BT /F1 8 Tf 0.39 0.36 0.34 rg 1 0 0 1 43 50 Tm (Case Vault | Quick Start and Features | Page 3 of 7) Tj ET
+endstream
+endobj
+xref
+0 25
+0000000000 65535 f 
+0000000015 00000 n 
+0000000054 00000 n 
+0000000154 00000 n 
+0000000220 00000 n 
+0000000368 00000 n 
+0000000438 00000 n 
+0000000513 00000 n 
+0000000581 00000 n 
+0000004848 00000 n 
+0000004997 00000 n 
+0000009338 00000 n 
+0000009488 00000 n 
+0000013997 00000 n 
+0000014147 00000 n 
+0000018525 00000 n 
+0000018667 00000 n 
+0000018738 00000 n 
+0000018814 00000 n 
+0000023102 00000 n 
+0000023244 00000 n 
+0000027870 00000 n 
+0000028012 00000 n 
+0000033252 00000 n 
+0000033274 00000 n 
+trailer
+<<
+/Size 25
+/Root 3 0 R
+/Info 1 0 R
+>>
+startxref
+37807
+%%EOF

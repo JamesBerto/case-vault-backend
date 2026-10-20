@@ -24,7 +24,7 @@ async def safe_validation_error(_, exc: RequestValidationError):
 
 app.add_middleware(CORSMiddleware, allow_origins=[origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()],
                    allow_credentials=False, allow_methods=["GET", "POST", "PATCH", "DELETE"],
-                   allow_headers=["Authorization", "Content-Type"])
+                   allow_headers=["Authorization", "Content-Type"], expose_headers=["Retry-After"])
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(cases.router)

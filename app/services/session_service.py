@@ -1,5 +1,6 @@
 """One active bearer-token slot per user, keyed by MongoDB's unique _id."""
 import hashlib
+import math
 from datetime import datetime, timedelta
 
 from app.core.config import settings
@@ -29,6 +30,19 @@ def live_session_filter(now: datetime) -> dict:
 
 async def has_active_session(user_id: str) -> bool:
     return await active_sessions().find_one({"_id": user_id, **live_session_filter(datetime.utcnow())}) is not None
+
+
+async def active_session_retry_after(user_id: str) -> int | None:
+    """Seconds until the current lease expires if it is not renewed."""
+    now = datetime.utcnow()
+    record = await active_sessions().find_one({"_id": user_id, **live_session_filter(now)})
+    if record is None:
+        return None
+    last_seen = record.get("last_seen_at", record.get("started_at"))
+    if last_seen is None:
+        return None
+    deadline = min(last_seen + SESSION_LEASE, record["expires_at"])
+    return max(1, math.ceil((deadline - now).total_seconds()))
 
 
 async def online_user_ids() -> list[str]:

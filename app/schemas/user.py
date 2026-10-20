@@ -8,6 +8,13 @@ class UserCreate(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
     role_id: str = Field(..., min_length=1)
 
+    @field_validator("email")
+    @classmethod
+    def require_case_vault_email(cls, value: str) -> str:
+        if value.rsplit("@", 1)[-1].lower() != "casevault.org":
+            raise ValueError("Email must use the @casevault.org domain")
+        return value
+
     @field_validator("name", "role_id", mode="before")
     @classmethod
     def strip_required_text(cls, value):
@@ -41,5 +48,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     role_id: str
     is_active: bool
+    totp_enabled: bool = False
+    totp_pending: bool = False
     created_at: datetime
     updated_at: datetime

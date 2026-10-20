@@ -1,10 +1,11 @@
 """Case endpoints. Date filters cover whole UTC calendar days; stored dates are naive UTC."""
 import re
-from datetime import date, datetime, time, timedelta
+import asyncio
+from datetime import date, datetime, time, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from bson.errors import InvalidId
-from pymongo.errors import DuplicateKeyError
+from pymongo.errors import DuplicateKeyError, OperationFailure
 
 from app.core.database import get_client
 from app.dependencies.auth import get_current_user, require_admin_permission, require_permission
@@ -14,6 +15,15 @@ from app.schemas.case import CaseCreate, CaseResponse, CaseUpdate
 from app.services.audit_service import log_action
 
 router = APIRouter(prefix="/cases", tags=["cases"])
+PHILIPPINE_TIME = timezone(timedelta(hours=8))
+
+
+async def next_case_number(day: date) -> str:
+    """Find the next date-based number, including archived records so numbers stay unique."""
+    prefix = day.strftime("%Y%m%d")
+    existing = await Case.find({"case_number": {"$regex": f"^{prefix}-[0-9]+$"}}).to_list()
+    highest = max((int(item.case_number[len(prefix) + 1:]) for item in existing), default=0)
+    return f"{prefix}-{highest + 1:03d}"
 
 
 def _out(c: Case) -> CaseResponse:
@@ -35,15 +45,30 @@ async def active_case(case_id: str) -> Case:
 @router.post("", response_model=CaseResponse, status_code=201,
              dependencies=[Depends(require_permission("case:create"))])
 async def create_case(data: CaseCreate, current_user: User = Depends(get_current_user)):
-    case = Case(case_number=data.case_number, case_type=data.case_type, created_by=str(current_user.id))
-    try:
-        async with await get_client().start_session() as session:
-            async with session.start_transaction():
-                await case.insert(session=session)
-                await log_action(str(current_user.id), "case_created", case_id=str(case.id), session=session)
-    except DuplicateKeyError:
-        raise HTTPException(409, "A case with this number already exists")
-    return _out(case)
+    day = datetime.now(PHILIPPINE_TIME).date()
+    for attempt in range(10):
+        number = data.case_number or await next_case_number(day)
+        case = Case(case_number=number, case_type=data.case_type, created_by=str(current_user.id))
+        try:
+            async with await get_client().start_session() as session:
+                async with session.start_transaction():
+                    await case.insert(session=session)
+                    await log_action(str(current_user.id), "case_created", case_id=str(case.id), session=session)
+            return _out(case)
+        except DuplicateKeyError:
+            if data.case_number is not None:
+                raise HTTPException(409, "A case with this number already exists")
+        except OperationFailure as exc:
+            if data.case_number is not None or not exc.has_error_label("TransientTransactionError"):
+                raise
+        if attempt < 9:
+            await asyncio.sleep(0.01 * (attempt + 1))
+    raise HTTPException(409, "Could not allocate a unique case number; please retry")
+
+
+@router.get("/next-number", dependencies=[Depends(require_permission("case:create"))])
+async def preview_next_case_number():
+    return {"case_number": await next_case_number(datetime.now(PHILIPPINE_TIME).date())}
 
 
 @router.get("", response_model=list[CaseResponse],

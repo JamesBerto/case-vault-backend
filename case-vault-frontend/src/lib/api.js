@@ -6,9 +6,10 @@ export const setToken = (token) => sessionStorage.setItem(TOKEN_KEY, token);
 export const clearToken = () => sessionStorage.removeItem(TOKEN_KEY);
 
 export class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, retryAfterSeconds = null) {
     super(message);
     this.status = status;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 
@@ -41,7 +42,9 @@ export async function api(path, { body, headers, ...options } = {}) {
       clearToken();
       window.dispatchEvent(new Event("case-vault-session-expired"));
     }
-    throw new ApiError(errorMessage(data.detail), response.status);
+    const retryAfter = Number(response.headers.get("Retry-After"));
+    throw new ApiError(errorMessage(data.detail), response.status,
+      Number.isInteger(retryAfter) && retryAfter > 0 ? retryAfter : null);
   }
   if (response.status === 204) return null;
   if (response.headers.get("content-type")?.includes("application/json")) return response.json();

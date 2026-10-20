@@ -1,6 +1,32 @@
 # Case Vault backend
 
+For access from other devices on the host computer's Wi-Fi subnet while keeping MongoDB Atlas, follow [LAN.md](LAN.md). The LAN entry point serves the built frontend and mounts this API at `/api`; the usual `app.main:app` startup remains for local development.
+
 The backend implements the PDF's case, evidence, role, tag, and audit API requirements. The PDF is a documentation snapshot and is not changed by these backend updates.
+
+## Authenticator two-factor authentication (TOTP)
+
+Install the updated `requirements.txt`. Generate a Fernet key once with `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` and save it as `TOTP_ENCRYPTION_KEY` in `.env`. Back up this deployment secret and keep it private. Do not regenerate it on restart: existing authenticator secrets require the same key. Missing/invalid keys return HTTP 503 when setup/decryption is needed, without bypassing 2FA.
+
+With API writes stopped, run `python -m app.services.migration_service --totp-only` to add only the `totp_challenges.expires_at` TTL index. The full migration also includes this index. No user-data rewrite is required: older accounts default to 2FA disabled. Challenge expiry is also checked in code independently of TTL cleanup.
+
+Administrators must enroll after their password is accepted and before receiving a full login token. Existing admin sessions without enrollment must sign in again. Analysts/reviewers continue using passwords until their 2FA is activated. Setup generates a pending encrypted secret; activation requires a valid test code. Replacing an authenticator keeps the existing one enabled until the replacement is confirmed.
+
+| Endpoint | Behavior |
+| --- | --- |
+| `POST /auth/login` | Existing email/password payload. Returns the usual HTTP 200 token for a non-admin with 2FA disabled, or HTTP 202 with `totp_required` / `totp_setup_required`, a limited challenge, and expiry. Admin enrollment includes QR, Base32 secret, and `otpauth://` URI. Pending logins receive no authenticated session/token. |
+| `POST /auth/totp/verify` | Accepts `{challenge, code}` and issues the normal token after a valid code. |
+| `POST /users/{id}/totp/setup` | Built-in admin plus `user:manage` only. Returns QR, manual secret, URI, and a setup challenge. |
+| `POST /users/{id}/totp/confirm` | Same admin restriction; accepts `{challenge, code}` to activate the pending authenticator. |
+| `POST /users/{id}/totp/reset` | Same admin restriction; clears/disables the authenticator and signs that account out. An admin target must enroll again at next sign-in. |
+
+Challenges last five minutes, allow five code submissions, and are stored as hashes. Repeated password submissions replace the challenge without resetting an unexpired attempt budget. TOTP uses six digits, 30-second periods, and one adjacent period of tolerance in either direction. Accepted periods cannot be reused; after an admin confirms another user's setup, that user should wait for a fresh code before signing in. Keep host/phone clocks synchronized.
+
+Activation/reset, session invalidation, and their audit entries use MongoDB transactions. Login atomically consumes the challenge, records the accepted TOTP period, claims the existing single session, and audits success. Setup, activation, reset, and rejected comparisons record actor/target/time without passwords, codes, URIs, or secrets. User responses expose only `totp_enabled` and `totp_pending`. The existing three-minute session lease and eight-hour token lifetime continue to apply.
+
+In admin User Details, choose **Set up 2FA**, let the user scan the QR or enter/copy the secret, then enter their current code and confirm. **Disable / reset 2FA** is the lost-device override. If the only administrator loses their device, another authenticated administrator or trusted database operator is needed for recovery; recovery codes are outside this implementation. Use HTTPS for deployed credential and provisioning traffic; see `LAN.md` for the HTTP demo configuration.
+
+Focused tests are in `tests/test_totp.py`. Database tests require an isolated replica set via `TEST_MONGO_URI` and create/drop only randomly named `cv_test_*` databases.
 
 ## Setup
 
@@ -10,9 +36,15 @@ On an existing database, stop API writes, back up the database, then run `python
 
 Start the API with `uvicorn app.main:app --reload`, then open `/docs`. `GET /cases` supports `status`, `case_type`, `q` (literal case-number substring), `analyst_id` (the case creator ID), and inclusive `submitted_from` / `submitted_to` calendar dates. Case timestamps are stored as naive UTC; date bounds are interpreted as UTC days. Evidence is listed by `GET /evidence/by-case/{case_id}`. Admin-only `GET /cases/deleted` and `GET /cases/deleted/{case_id}` and `GET /evidence/deleted/{evidence_id}` inspect archived metadata. Normal evidence endpoints return 404 when the evidence or parent case has been soft-deleted, even for admins.
 
+The Create Case form previews `YYYYMMDD-NNN` using the Philippine calendar date. `GET /cases/next-number` requires `case:create` and returns a preview. When `POST /cases` omits `case_number`, the backend assigns the final unique number and retries a collision against the existing unique index. Archived cases remain counted, so their numbers are not reused. A preview may change if another case is saved first or the date changes. API clients may still supply an explicit `case_number` for compatibility; duplicates return HTTP 409. The internal MongoDB case ID remains unchanged and is still used for evidence associations. No migration is required.
+
 `GET /users/me/access` returns the signed-in user's role and current permission codes for navigation. `POST /auth/logout` revokes the presented bearer token until its expiry; expired revocation records are removed by a MongoDB TTL index. Evidence uploads can also store optional description, source device, and notes fields used by the frontend.
 
+New accounts created through `POST /users` must use an email address ending in exactly `@casevault.org`; subdomains and other providers are rejected with HTTP 422. Existing accounts are unchanged and can still sign in, so administrators should review any older accounts with other domains separately. This checks the address format only; it does not verify ownership of an inbox.
+
 Each account has one active login session. A second login with valid credentials returns HTTP 409 while the first session is active. A successful logout releases the slot immediately. Authenticated requests renew a three-minute server-side lease, and the frontend calls `POST /auth/heartbeat` every minute while open. If the tab closes or loses connectivity, another device can sign in once that lease expires; the old token then fails authentication even if its eight-hour JWT expiry has not passed. Browser sleep or throttling can also let the lease expire while a tab is open, in which case the user must sign in again. Changing an account's active status releases its slot, so a reactivated account must sign in again. Session records contain a SHA-256 token hash, never the raw token. The `active_sessions` collection uses the unique MongoDB `_id` per user and an `expires_at` TTL index; login also checks both JWT expiry and lease freshness directly because TTL cleanup is asynchronous. Existing active sessions without `last_seen_at` use `started_at` for the initial lease check; sessions older than three minutes must sign in again after deployment. No new database migration is required for this change. A copied bearer token can still be used elsewhere while its session is active. Account deletion is unavailable; administrators can deactivate or reactivate accounts through `PATCH /users/{user_id}`.
+
+An already-signed-in HTTP 409 login response includes `Retry-After` with the remaining lease seconds at the time of the response. The login page displays a countdown from that value. It is an estimate: activity on the first device renews its lease, while signing out may release it sooner. A user must retry login after the timer reaches zero; the frontend does not submit credentials automatically.
 
 Passwords must contain 8–128 characters. Self-service password changes reject a local list of common passwords and obvious sequences. Only the built-in admin role may use a common password when creating an account with a temporary password; the temporary password is not automatically expired or forced to change, so the user should replace it in Password Settings. This local check is not an exhaustive breached-password screening service. New hashes use bcrypt-SHA256 so all 128 characters matter; existing bcrypt hashes still verify and are replaced with the new scheme when changed. No database migration is required.
 

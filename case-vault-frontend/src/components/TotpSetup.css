@@ -1,0 +1,96 @@
+.totp-setup {
+  display: grid;
+  min-width: 0;
+  gap: 14px;
+  color: var(--vault-muted, #78695d);
+  font-size: 12px;
+}
+
+.totp-setup p { margin: 0; line-height: 1.6; }
+
+.totp-setup-pending {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border: 1px solid #dfcba7;
+  border-radius: 3px;
+  background: #f4ead6;
+  color: #795522;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.totp-qr {
+  justify-self: center;
+  max-width: 100%;
+  padding: 10px;
+  border: 1px solid #e6dbce;
+  border-radius: 5px;
+  background: #fff;
+}
+.totp-qr img { display: block; width: 200px; max-width: 100%; height: auto; }
+
+.totp-manual-field {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  color: #81715d;
+  font-size: 10px;
+  font-weight: 600;
+}
+.totp-manual-field input {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d8cbbb;
+  border-radius: 4px;
+  background: #fffdf8;
+  color: var(--vault-text, #30251f);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.totp-copy-button {
+  display: inline-flex;
+  justify-self: start;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d8cbbb;
+  border-radius: 4px;
+  background: #fffdfa;
+  color: #705a47;
+  font-size: 11px;
+  font-weight: 600;
+}
+.totp-copy-button:hover:not(:disabled) { background: #eee3d4; }
+.totp-copy-button:disabled { opacity: .6; cursor: not-allowed; }
+.totp-copy-button svg,
+.totp-setup-pending svg { flex: none; }
+.totp-copy-button:focus-visible,
+.totp-manual-field input:focus-visible {
+  outline: 2px solid var(--vault-accent, #8c332c);
+  outline-offset: 2px;
+}
+
+.totp-setup .totp-feedback {
+  padding: 10px;
+  border: 1px solid #a3b894;
+  border-radius: 4px;
+  background: #edf2e8;
+  color: #48643e;
+  font-size: 11px;
+}
+.totp-setup .totp-feedback-error { border-color: #d5a39d; background: #f8ebe7; color: #8c332c; }
+.totp-setup .totp-setup-help { font-size: 11px; }
+
+@media (max-width: 600px) {
+  .totp-copy-button { justify-self: stretch; }
+  .totp-manual-field input { font-size: 16px; }
+}

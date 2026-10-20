@@ -13,6 +13,7 @@ from app.routers import audit, cases, evidence, users
 from app.core.password_policy import is_common_password
 from app.core.security import hash_password, pwd_context, verify_password
 from app.services import session_service
+from app.schemas.case import CaseCreate
 from app.schemas.user import ChangePasswordRequest, UserCreate
 from app.main import safe_validation_error
 
@@ -80,6 +81,25 @@ def test_reversed_date_range_returns_422():
             submitted_from=date(2026, 10, 17), submitted_to=date(2026, 10, 16),
             current_user=SimpleNamespace(id="actor")))
     assert error.value.status_code == 422
+
+
+def test_date_based_case_number_includes_archived_numbers(monkeypatch):
+    captured = {}
+
+    class Finder:
+        async def to_list(self):
+            return [SimpleNamespace(case_number="20261020-001", deleted_at=None),
+                    SimpleNamespace(case_number="20261020-010", deleted_at=datetime(2026, 10, 20))]
+
+    def find(query):
+        captured.update(query)
+        return Finder()
+
+    monkeypatch.setattr(cases.Case, "find", find)
+    assert asyncio.run(cases.next_case_number(date(2026, 10, 20))) == "20261020-011"
+    assert captured == {"case_number": {"$regex": "^20261020-[0-9]+$"}}
+    assert CaseCreate(case_type="Digital").case_number is None
+    assert CaseCreate(case_number="LEGACY-1", case_type="Digital").case_number == "LEGACY-1"
 
 
 def test_audit_stream_pushes_new_entries_without_logging_each_check(monkeypatch):
@@ -162,6 +182,25 @@ def test_online_user_ids_uses_current_session_lease(monkeypatch):
     assert "$or" in captured and "expires_at" in captured
 
 
+def test_active_session_retry_after_uses_last_activity_and_legacy_start(monkeypatch):
+    now = datetime.utcnow()
+    records = [{"last_seen_at": now - session_service.SESSION_LEASE + session_service.timedelta(seconds=90),
+                "expires_at": now + session_service.timedelta(hours=1)},
+               {"started_at": now - session_service.SESSION_LEASE + session_service.timedelta(seconds=30),
+                "expires_at": now + session_service.timedelta(hours=1)},
+               None]
+
+    class Sessions:
+        async def find_one(self, query):
+            assert query["_id"] == "analyst"
+            return records.pop(0)
+
+    monkeypatch.setattr(session_service, "active_sessions", lambda: Sessions())
+    assert 89 <= asyncio.run(session_service.active_session_retry_after("analyst")) <= 90
+    assert 29 <= asyncio.run(session_service.active_session_retry_after("analyst")) <= 30
+    assert asyncio.run(session_service.active_session_retry_after("analyst")) is None
+
+
 @pytest.mark.parametrize("password", [
     "password123", "P@ssw0rd123!", "Admin2026!", "qwerty123", "12345678",
     "123456789123", "abcdabcd", "aaaaaaaa",
@@ -173,7 +212,7 @@ def test_user_chosen_password_rejects_common_choices(password):
 
 
 def test_password_lengths_and_admin_temporary_exception():
-    temporary = {"name": "Test User", "email": "test@example.com",
+    temporary = {"name": "Test User", "email": "test@casevault.org",
                  "password": "password123", "role_id": "role-id"}
     assert UserCreate.model_validate(temporary).password == "password123"
     for length in (7, 129):
@@ -183,6 +222,21 @@ def test_password_lengths_and_admin_temporary_exception():
             ChangePasswordRequest(current_password="old", new_password="x" * length)
     long_password = ("R4ndomPassphrase!" * 8)[:128]
     assert len(ChangePasswordRequest(current_password="old", new_password=long_password).new_password) == 128
+
+
+@pytest.mark.parametrize("email", [
+    "person@gmail.com", "person@yahoo.com", "person@casevault.org.evil.com",
+    "person@sub.casevault.org", "person@casevault.orgx",
+])
+def test_new_user_requires_exact_case_vault_email_domain(email):
+    with pytest.raises(ValidationError, match="Email must use the @casevault.org domain"):
+        UserCreate(name="Test User", email=email, password="TestPass123!", role_id="role-id")
+
+
+def test_new_user_accepts_case_vault_email_domain():
+    data = UserCreate(name="Test User", email="person@casevault.org",
+                      password="TestPass123!", role_id="role-id")
+    assert data.email == "person@casevault.org"
 
 
 def test_only_admin_can_set_common_temporary_password(monkeypatch):
@@ -195,12 +249,13 @@ def test_only_admin_can_set_common_temporary_password(monkeypatch):
     async def create(data, _actor):
         return SimpleNamespace(id="new-user", name=data.name, email=data.email,
                                role_id=data.role_id, is_active=True,
+                               totp_enabled=False, totp_pending_secret_encrypted=None,
                                created_at=datetime(2026, 10, 18), updated_at=datetime(2026, 10, 18))
 
     monkeypatch.setattr(users.Role, "get", role)
     monkeypatch.setattr(users, "User", SimpleNamespace(email="email", find_one=absent))
     monkeypatch.setattr(users, "create_user_account", create)
-    data = UserCreate(name="Test User", email="test@example.com",
+    data = UserCreate(name="Test User", email="test@casevault.org",
                       password="password123", role_id="role-id")
     with pytest.raises(HTTPException) as error:
         asyncio.run(users.create_user(data, current_user=SimpleNamespace(role_id="custom-role")))
@@ -229,7 +284,7 @@ def test_validation_errors_do_not_echo_submitted_password():
 
 @pytest.mark.parametrize("field", ["name", "email", "password", "role_id"])
 def test_create_user_requires_every_field(field):
-    data = {"name": "Test User", "email": "test@example.com",
+    data = {"name": "Test User", "email": "test@casevault.org",
             "password": "TestPass123!", "role_id": "role-id"}
     data.pop(field)
     with pytest.raises(ValidationError):
@@ -238,7 +293,7 @@ def test_create_user_requires_every_field(field):
 
 @pytest.mark.parametrize("field", ["name", "email", "password", "role_id"])
 def test_create_user_rejects_whitespace_only_fields(field):
-    data = {"name": "Test User", "email": "test@example.com",
+    data = {"name": "Test User", "email": "test@casevault.org",
             "password": "TestPass123!", "role_id": "role-id"}
     data[field] = "        "
     with pytest.raises(ValidationError):

@@ -68,18 +68,23 @@ export function AuthProvider({ children }) {
     };
   }, [user]);
 
-  const login = async (email, password) => {
-    const result = await api("/auth/login", { method: "POST", body: { email, password } });
+  const finishLogin = async (result) => {
+    if (!result.access_token) return result;
     setToken(result.access_token);
     try {
       const profile = await api("/users/me/access");
       setUser(profile);
-      return profile;
+      return result;
     } catch (error) {
       if (error.status === 401 || error.status === 403) clearToken();
       throw error;
     }
   };
+
+  const login = async (email, password) => finishLogin(
+    await api("/auth/login", { method: "POST", body: { email, password } }));
+  const verifyTotp = async (challenge, code) => finishLogin(
+    await api("/auth/totp/verify", { method: "POST", body: { challenge, code } }));
 
   const logout = async () => {
     try { await api("/auth/logout", { method: "POST" }); }
@@ -89,5 +94,5 @@ export function AuthProvider({ children }) {
     clearToken();
     setUser(null);
   };
-  return <AuthContext.Provider value={{ user, loading, accessError, retryAccess, login, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading, accessError, retryAccess, login, verifyTotp, logout }}>{children}</AuthContext.Provider>;
 }
